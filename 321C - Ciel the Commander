@@ -1,0 +1,49 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+vector<vector<int>> edges(1e5 + 1);
+vector<bool> deleted(1e5 + 1, false);
+vector<int> sbtreesz(1e5 + 1);
+vector<int> depths(1e5 + 1);
+ 
+int szdfs(int node, int p = -1)
+{
+	sbtreesz[node] = 1;
+	for (int chi : edges[node]) if (!deleted[chi] && (chi != p)) sbtreesz[node] += szdfs(chi, node);
+	return sbtreesz[node];
+}
+ 
+int centroid(int node, int sz, int p = -1)
+{
+	for (int chi : edges[node]) if ((!deleted[chi] && (chi != p)) && (2 * sbtreesz[chi] > sz)) return centroid(chi, sz, node);
+	return node;
+}
+ 
+void decomp(int node = 1, int d = 0)
+{
+	int cen = centroid(node, szdfs(node));
+	depths[cen] = d++;
+	deleted[cen] = true;
+	for (int chi : edges[cen]) if (!deleted[chi]) decomp(chi, d);
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n;
+	cin >> n;
+	for (int i = 1; i < n; i++)
+	{
+		int a, b;
+		cin >> a >> b;
+		edges[a].push_back(b), edges[b].push_back(a);
+	}
+ 
+	decomp();
+	for (int i = 1; i <= n; i++) cout << char('A' + depths[i]) << ' ';
+}
