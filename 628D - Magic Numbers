@@ -1,0 +1,59 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+
+const int MOD = 1e9 + 7;
+int n, m, d;
+
+int leq(string s)
+{
+	vector<vector<vector<int>>> dp(n + 1, vector<vector<int>>(m, vector<int>(2, 0)));
+	dp[0][0][1] = 1;
+	for (int i = 0; i < n; i++) for (int j = 0; j < m; j++) for (int k = 0; k < 2; k++)
+		for (int l = 0; l <= ((k == 1) ? int(s[i] - '0') : 9); l++) if (((i > 0) || (l > 0)) && (((i % 2 == 0) && (l != d)) ||
+			((i % 2 == 1) && (l == d))))
+		{
+			int ni = i + 1;
+			int nj = (j * 10 + l) % m;
+			int nk = (((k == 1) && (l == int(s[i] - '0'))) ? 1 : 0);
+			dp[ni][nj][nk] += dp[i][j][k];
+			dp[ni][nj][nk] %= MOD;
+		}
+
+	return ((dp[n][0][0] + dp[n][0][1]) % MOD);
+}
+
+int good(string s)
+{
+	int rem = 0;
+	for (int i = 0; i < n; i++)
+	{
+		int ndig = int(s[i] - '0');
+		if ((i % 2 == 0) && (ndig == d)) return 0;
+		if ((i % 2 == 1) && (ndig != d)) return 0;
+		rem *= 10;
+		rem += ndig;
+		rem %= m;
+	}
+
+	if (rem == 0) return 1;
+	return 0;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	string a, b;
+	cin >> m >> d >> a >> b;
+	n = a.size();
+
+	int ans = leq(b) - leq(a) + good(a);
+	ans %= MOD;
+	if (ans < 0) ans += MOD;
+	cout << ans;
+}
