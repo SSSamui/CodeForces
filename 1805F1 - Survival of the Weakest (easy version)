@@ -1,0 +1,56 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+#include <queue>
+using namespace std;
+
+const int MOD = 1e9 + 7;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n;
+	cin >> n;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+	sort(a.begin(), a.end());
+
+	int ans = 0;
+	while (n > 1)
+	{
+		int ad = a[0];
+		for (int i = 0; i < n; i++) a[i] -= ad;
+		for (int i = 1; i < n; i++)
+		{
+			ad *= 2;
+			ad %= MOD;
+		}
+
+		ans += ad;
+		ans %= MOD;
+		
+		priority_queue<pair<int, pair<int, int>>> add;
+		vector<int> b(0);
+		for (int i = 1; i < n; i++) add.push({ -a[i - 1] - a[i], {i - 1, i} });
+		a.push_back(1e9 + 1);
+		for (int i = 1; i < n; i++)
+		{
+			pair<int, pair<int, int>> tp = add.top();
+			add.pop();
+
+			b.push_back(-tp.first);
+			add.push({ -a[tp.second.first] - a[tp.second.second + 1], {tp.second.first, tp.second.second + 1} });
+		}
+
+		a = b;
+		n--;
+	}
+
+	ans += a[0];
+	ans %= MOD;
+	cout << ans;
+}
