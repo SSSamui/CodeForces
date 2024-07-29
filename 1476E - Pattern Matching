@@ -1,0 +1,72 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+#include <set>
+using namespace std;
+ 
+vector<set<int>> adj(1e5 + 1);
+vector<bool> vis(1e5 + 1, false);
+vector<bool> incyc(1e5 + 1, false);
+vector<int> topsort(0);
+ 
+bool dfs(int node)
+{
+	vis[node] = true;
+	incyc[node] = true;
+	for (int nxt : adj[node])
+	{
+		if (incyc[nxt]) return false;
+		else if (!vis[nxt]) { if (!dfs(nxt)) return false; }
+	}
+ 
+	incyc[node] = false;
+	topsort.push_back(node);
+	return true;
+}
+ 
+bool solve()
+{
+	int n, m, k;
+	cin >> n >> m >> k;
+ 
+	vector<vector<char>> ptns(n + 1, vector<char>(k));
+	for (int i = 1; i <= n; i++) for (int j = 0; j < k; j++) cin >> ptns[i][j];
+	map<vector<char>, int> inv;
+	for (int i = 1; i <= n; i++) inv[ptns[i]] = i;
+ 
+	int sz = 1 << k;
+	while (m--)
+	{
+		vector<char> str(k);
+		int fst;
+		for (int i = 0; i < k; i++) cin >> str[i];
+		cin >> fst;
+		for (int i = 0; i < k; i++) if ((ptns[fst][i] != '_') && (ptns[fst][i] != str[i])) return false;
+		for (int msk = 0; msk < sz; msk++)
+		{
+			vector<char> cnt = str;
+			for (int bt = 0; bt < k; bt++) if (msk & (1 << bt)) cnt[bt] = '_';
+			if ((inv.count(cnt)) && (cnt != ptns[fst])) adj[fst].insert(inv[cnt]);
+		}
+	}
+ 
+	for (int i = 1; i <= n; i++) if (!vis[i]) { if (!dfs(i)) return false; }
+	cout << "YES\n";
+	while (!topsort.empty())
+	{
+		cout << topsort.back() << ' ';
+		topsort.pop_back();
+	}
+ 
+	return true;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	if (!solve()) cout << "NO";
+}
