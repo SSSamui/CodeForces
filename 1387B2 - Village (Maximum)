@@ -1,0 +1,92 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+ 
+const int MXN = 1e5 + 1;
+const ll two = 2;
+ 
+int n;
+ 
+vector<vector<int>> adj(MXN, vector<int>(0));
+vector<int> dep(MXN, 0), sbtreesz(MXN, 1);
+vector<vector<int>> sbtree(MXN, vector<int>(0));
+ 
+int cent = 1;
+ 
+void sbtreedfs(int node = 1, int p = 0)
+{
+	for (int nxt : adj[node]) if (nxt != p)
+	{
+		sbtreedfs(nxt, node);
+		sbtreesz[node] += sbtreesz[nxt];
+	}
+}
+ 
+void centdet(int node = 1, int p = 0)
+{
+	for (int nxt : adj[node]) if ((sbtreesz[nxt] > n / 2) && (nxt != p))
+	{
+		cent = nxt;
+		centdet(nxt, node);
+	}
+}
+ 
+void depdfs(int node, int p = 0)
+{
+	for (int nxt : adj[node]) if (nxt != p)
+	{
+		dep[nxt] = dep[node] + 1;
+		depdfs(nxt, node);
+	}
+}
+ 
+void sbtreedfs(int node, int p, int top)
+{
+	sbtree[top].push_back(node);
+	for (int nxt : adj[node]) if (nxt != p) sbtreedfs(nxt, node, top);
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	cin >> n;
+	for (int i = 1; i < n; i++)
+	{
+		int a, b;
+		cin >> a >> b;
+		adj[a].push_back(b), adj[b].push_back(a);
+	}
+ 
+	sbtreedfs();
+	centdet();
+	depdfs(cent);
+	sbtree[cent].push_back(cent);
+ 
+	ll ans = 0;
+	for (int i = 1; i <= n; i++) ans += two * dep[i];
+	cout << ans << "\n";
+ 
+	vector<pair<int, int>> res(1, { -1, cent });
+	for (int nxt : adj[cent]) sbtreedfs(nxt, cent, nxt);
+	for (int nxt : adj[cent])
+	{
+		int sz = sbtree[nxt].size();
+		res.push_back({ -sz, nxt });
+	}
+ 
+	sort(res.begin(), res.end());
+	vector<int> v1(0), v2(0);
+	for (int i = 0; i < res.size(); i++) for (int tins : sbtree[res[i].second]) v1.push_back(tins);
+	for (int i = 1; i < res.size(); i++) for (int tins : sbtree[res[i].second]) v2.push_back(tins);
+	for (int tins : sbtree[res[0].second]) v2.push_back(tins);
+ 
+	vector<int> fans(n + 1);
+	for (int i = 0; i < n; i++) fans[v1[i]] = v2[i];
+	for (int i = 1; i <= n; i++) cout << fans[i] << ' ';
+}
