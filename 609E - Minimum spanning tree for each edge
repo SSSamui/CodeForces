@@ -1,0 +1,119 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+
+const int MXN = 2e5 + 1;
+
+vector<int> par(MXN), dep(MXN, 0);
+vector<vector<pair<int, ll>>> adj(MXN, vector<pair<int, ll>>(0));
+vector<vector<int>> blftnde(MXN, vector<int>(0));
+vector<vector<ll>> blftedg(MXN, vector<ll>(0));
+
+int rt(int node)
+{
+	if (par[node] == node) return node;
+	par[node] = rt(par[node]);
+	return par[node];
+}
+
+void dfs(int node = 1, int p = 0)
+{
+	for (pair<int, ll> nxt : adj[node]) if (nxt.first != p)
+	{
+		dep[nxt.first] = dep[node] + 1;
+		blftnde[nxt.first].push_back(node), blftedg[nxt.first].push_back(nxt.second);
+		int ind = 0, curr = node;
+		while (ind < blftnde[curr].size())
+		{
+			blftnde[nxt.first].push_back(blftnde[curr][ind]);
+			blftedg[nxt.first].push_back(fmax(blftedg[curr][ind], blftedg[nxt.first][ind]));
+			curr = blftnde[curr][ind++];
+		}
+
+		dfs(nxt.first, node);
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n, m;
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++) par[i] = i;
+
+	vector<pair<pair<ll, int>, pair<int, int>>> edg(m);
+	for (int i = 0; i < m; i++)
+	{
+		edg[i].second.second = i;
+		cin >> edg[i].first.second >> edg[i].second.first >> edg[i].first.first;
+	}
+
+	sort(edg.begin(), edg.end());
+	ll sm = 0;
+	for (int i = 0; i < m; i++)
+	{
+		int u = edg[i].first.second, v = edg[i].second.first;
+		if (rt(u) != rt(v))
+		{
+			adj[u].push_back({ v, edg[i].first.first }), adj[v].push_back({ u, edg[i].first.first });
+			u = rt(u), v = rt(v);
+			par[v] = u;
+			sm += edg[i].first.first;
+		}
+	}
+
+	dfs();
+	vector<ll> ans(m);
+	for (int i = 0; i < m; i++)
+	{
+		int ind = edg[i].second.second;
+		ll add = edg[i].first.first;
+		int u = edg[i].first.second, v = edg[i].second.first;
+		ll rem = 0;
+
+		if (dep[u] > dep[v]) swap(u, v);
+		int vind = blftnde[v].size() - 1;
+		while (vind > -1)
+		{
+			if (dep[blftnde[v][vind]] >= dep[u])
+			{
+				rem = fmax(rem, blftedg[v][vind]);
+				v = blftnde[v][vind];
+				vind = fmin(vind, blftnde[v].size());
+			}
+
+			vind--;
+		}
+
+		if (u != v)
+		{
+			vind = blftnde[v].size() - 1;
+			while (vind > -1)
+			{
+				if (blftnde[u][vind] != blftnde[v][vind])
+				{
+					rem = fmax(rem, blftedg[u][vind]);
+					u = blftnde[u][vind];
+					rem = fmax(rem, blftedg[v][vind]);
+					v = blftnde[v][vind];
+					vind = fmin(vind, blftnde[v].size());
+				}
+
+				vind--;
+			}
+
+			rem = fmax(rem, blftedg[u][0]);
+			rem = fmax(rem, blftedg[v][0]);
+		}
+
+		ans[ind] = sm + add - rem;
+	}
+
+	for (int i = 0; i < m; i++) cout << ans[i] << "\n";
+}
