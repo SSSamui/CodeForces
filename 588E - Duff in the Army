@@ -1,0 +1,131 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+const int MXA = 10;
+const int MXN = 1e5 + 1;
+
+vector<int> v1(0), v2(0), v3(0);
+
+void merge(int a)
+{
+	int i = 0, j = 0;
+	while ((v3.size() < a) && ((i < v1.size()) && (j < v2.size())))
+	{
+		if (v1[i] < v2[j]) v3.push_back(v1[i++]);
+		else if (v2[j] < v1[i]) v3.push_back(v2[j++]);
+		else v3.push_back(v1[i++]), j++;
+	}
+
+	while ((v3.size() < a) && (i < v1.size())) v3.push_back(v1[i++]);
+	while ((v3.size() < a) && (j < v2.size())) v3.push_back(v2[j++]);
+
+	v1 = v3;
+	v2.clear(), v3.clear();
+}
+
+vector<int> dep(MXN, 0);
+vector<vector<int>> adj(MXN, vector<int>(0)), inds(MXN, vector<int>(0)), blftnde(MXN, vector<int>(0));
+vector<vector<vector<int>>> blftind(MXN, vector<vector<int>>(0));
+
+void dfs(int node = 1, int p = 0)
+{
+	for (int nxt : adj[node]) if (nxt != p)
+	{
+		dep[nxt] = dep[node] + 1;
+		v1 = inds[nxt];
+		blftnde[nxt].push_back(node), blftind[nxt].push_back(v1);
+
+		int ind = 0, curr = node;
+		while (blftnde[curr].size() > ind)
+		{
+			v2 = blftind[curr][ind];
+			merge(MXA);
+			curr = blftnde[curr][ind++];
+			blftnde[nxt].push_back(curr), blftind[nxt].push_back(v1);
+		}
+
+		dfs(nxt, node);
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n, m, _;
+	cin >> n >> m >> _;
+	for (int i = 1; i < n; i++)
+	{
+		int a, b;
+		cin >> a >> b;
+		adj[a].push_back(b), adj[b].push_back(a);
+	}
+
+	for (int i = 1; i <= m; i++)
+	{
+		int a;
+		cin >> a;
+		if (inds[a].size() < MXA) inds[a].push_back(i);
+	}
+
+	dfs();
+	while (_--)
+	{
+		v1.clear();
+
+		int v, u, a;
+		cin >> v >> u >> a;
+		if (dep[u] > dep[v]) swap(u, v);
+
+		int ind = blftnde[v].size() - 1;
+		while (ind > -1)
+		{
+			if (dep[blftnde[v][ind]] >= dep[u])
+			{
+				v2 = blftind[v][ind];
+				merge(a);
+				v = blftnde[v][ind];
+				ind = fmin(ind, blftnde[v].size());
+			}
+
+			ind--;
+		}
+
+		if (v != u)
+		{
+			ind = blftnde[v].size() - 1;
+			while (ind > -1)
+			{
+				if (blftnde[v][ind] != blftnde[u][ind])
+				{
+					v2 = blftind[v][ind];
+					merge(a);
+					v2 = blftind[u][ind];
+					merge(a);
+					v = blftnde[v][ind], u = blftnde[u][ind];
+					ind = fmin(ind, blftnde[v].size());
+				}
+
+				ind--;
+			}
+
+			v2 = inds[v];
+			merge(a);
+			v2 = inds[u];
+			merge(a);
+			v = blftnde[v][0], u = blftnde[u][0];
+		}
+
+		v2 = inds[v];
+		merge(a);
+
+		cout << v1.size();
+		for (int i = 0; i < v1.size(); i++) cout << ' ' << v1[i];
+		cout << "\n";
+	}
+}
