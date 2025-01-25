@@ -1,0 +1,124 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+struct val
+{
+	int sum, minsum, maxsum, minsuff, maxsuff, minpref, maxpref;
+};
+ 
+val operator + (val a, val b)
+{
+	val c = { 0, 0, 0, 0, 0, 0, 0 };
+	c.sum = a.sum + b.sum;
+	c.minsum = fmin(fmin(a.minsum, b.minsum), a.minsuff + b.minpref), c.maxsum = fmax(fmax(a.maxsum, b.maxsum), a.maxsuff + b.maxpref);
+	c.minsuff = fmin(b.minsuff, b.sum + a.minsuff), c.maxsuff = fmax(b.maxsuff, b.sum + a.maxsuff);
+	c.minpref = fmin(a.minpref, a.sum + b.minpref), c.maxpref = fmax(a.maxpref, a.sum + b.maxpref);
+	return c;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	val valp = { 1, 0, 1, 0, 1, 0, 1 }, valn = { -1, -1, 0, -1, 0, -1, 0 };
+ 
+	int __;
+	cin >> __;
+	while (__--)
+	{
+		vector<val> ndearr(1, valp);
+		vector<vector<int>> blftnde(1, vector<int>(0));
+		vector<vector<val>> blftval(1, vector<val>(0));
+		vector<int> dep(1, 0);
+ 
+		int _;
+		cin >> _;
+		while (_--)
+		{
+			char c;
+			cin >> c;
+			if (c == '+')
+			{
+				int v, x;
+				cin >> v >> x;
+				v--;
+ 
+				int tadd = ndearr.size();
+				dep.push_back(dep[v] + 1);
+				if (x == 1) ndearr.push_back(valp);
+				else ndearr.push_back(valn);
+ 
+				vector<int> tpushbacknde(1, v);
+				vector<val> tpushbackval(1, ndearr[tadd]);
+				int ind = 0;
+				while (blftnde[v].size() > ind)
+				{
+					tpushbacknde.push_back(blftnde[v][ind]), tpushbackval.push_back(tpushbackval[ind] + blftval[v][ind]);
+					v = blftnde[v][ind++];
+				}
+ 
+				blftnde.push_back(tpushbacknde), blftval.push_back(tpushbackval);
+			}
+ 
+			else
+			{
+				int u, v, x;
+				cin >> u >> v >> x;
+				u--, v--;
+				if (dep[u] > dep[v]) swap(u, v);
+ 
+				val upv = { 0, 0, 0, 0, 0, 0, 0 };
+				int ind = blftnde[v].size() - 1;
+				while (ind > -1)
+				{
+					if (dep[blftnde[v][ind]] >= dep[u])
+					{
+						upv = upv + blftval[v][ind];
+						v = blftnde[v][ind];
+						ind = fmin(ind, blftnde[v].size());
+					}
+ 
+					ind--;
+				}
+ 
+				if (u == v)
+				{
+					upv = upv + ndearr[v];
+					if ((upv.minsum <= x) && (x <= upv.maxsum)) cout << "YES\n";
+					else cout << "NO\n";
+				}
+ 
+				else
+				{
+					val upu = { 0, 0, 0, 0, 0, 0, 0 };
+					ind = blftnde[v].size() - 1;
+					while (ind > -1)
+					{
+						if (blftnde[v][ind] != blftnde[u][ind])
+						{
+							upv = upv + blftval[v][ind], upu = upu + blftval[u][ind];
+							v = blftnde[v][ind], u = blftnde[u][ind];
+							ind = fmin(ind, blftnde[v].size());
+						}
+ 
+						ind--;
+					}
+ 
+					upv = upv + ndearr[v], upu = upu + ndearr[u];
+					v = blftnde[v][0], u = blftnde[u][0];
+					upv = upv + ndearr[v];
+ 
+					swap(upu.minsuff, upu.minpref), swap(upu.maxsuff, upu.maxpref);
+					upv = upv + upu;
+ 
+					if ((upv.minsum <= x) && (x <= upv.maxsum)) cout << "YES\n";
+					else cout << "NO\n";
+				}
+			}
+		}
+	}
+}
