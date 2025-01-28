@@ -1,0 +1,112 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+
+const int MXN = 3e5 + 1;
+
+vector<vector<pair<int, ll>>> adj(MXN, vector<pair<int, ll>>(0));
+vector<ll> a(MXN, 0), insub(MXN, 0), outsub(MXN, 0);
+vector<vector<int>> blftnde(MXN, vector<int>(0));
+vector<vector<ll>> blftw(MXN, vector<ll>(0));
+vector<int> dep(MXN, 0);
+vector<ll> pw(MXN, 0);
+
+void dfs1(int node = 1, int p = 0)
+{
+	insub[node] = a[node];
+	for (pair<int, ll> nxt : adj[node]) if (nxt.first != p)
+	{
+		dep[nxt.first] = dep[node] + 1, pw[nxt.first] = nxt.second;
+		dfs1(nxt.first, node);
+		insub[node] += fmax(0, insub[nxt.first] - 2ll * nxt.second);
+	}
+}
+
+void dfs2(int node = 1, int p = 0)
+{
+	for (pair<int, ll> nxt : adj[node]) if (nxt.first != p)
+	{
+		blftnde[nxt.first].push_back(node);
+		blftw[nxt.first].push_back(insub[node] - fmax(0, insub[nxt.first] - 2ll * nxt.second) - nxt.second);
+		outsub[nxt.first] = fmax(0, outsub[node] + blftw[nxt.first][0] - nxt.second);
+		int ind = 0, curr = node;
+		while (blftnde[curr].size() > ind)
+		{
+			blftnde[nxt.first].push_back(blftnde[curr][ind]), blftw[nxt.first].push_back(blftw[nxt.first][ind] + blftw[curr][ind]);
+			curr = blftnde[curr][ind++];
+		}
+
+		dfs2(nxt.first, node);
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n, _;
+	cin >> n >> _;
+	for (int i = 1; i <= n; i++) cin >> a[i];
+	for (int i = 1; i < n; i++)
+	{
+		int u, v;
+		ll w;
+		cin >> u >> v >> w;
+		adj[u].push_back({ v, w }), adj[v].push_back({ u, w });
+	}
+
+	dfs1();
+	dfs2();
+	while (_--)
+	{
+		int u, v;
+		cin >> u >> v;
+		if (dep[u] > dep[v]) swap(u, v);
+
+		ll ans = insub[v];
+		int ind = blftnde[v].size() - 1;
+		while (ind > -1)
+		{
+			if (dep[blftnde[v][ind]] >= dep[u])
+			{
+				ans += blftw[v][ind];
+				v = blftnde[v][ind];
+				ind = fmin(ind, blftnde[v].size());
+			}
+
+			ind--;
+		}
+
+		if (u == v)
+		{
+			ans += outsub[v];
+			cout << ans << "\n";
+		}
+
+		else
+		{
+			ans += insub[u];
+			ind = blftnde[v].size() - 1;
+			while (ind > -1)
+			{
+				if (blftnde[v][ind] != blftnde[u][ind])
+				{
+					ans += blftw[v][ind], ans += blftw[u][ind];
+					v = blftnde[v][ind], u = blftnde[u][ind];
+					ind = fmin(ind, blftnde[v].size());
+				}
+
+				ind--;
+			}
+
+			ans -= pw[v], ans -= pw[u];
+			int p = blftnde[v][0];
+			ans += outsub[p] + insub[p] - fmax(0, insub[v] - 2ll * pw[v]) - fmax(0, insub[u] - 2ll * pw[u]);
+			cout << ans << "\n";
+		}
+	}
+}
