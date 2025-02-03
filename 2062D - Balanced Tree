@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+
+const int MXN = 2e5 + 1;
+
+vector<vector<int>> adj(MXN, vector<int>(0));
+vector<ll> l(MXN, 0), r(MXN, 0);
+vector<ll> val(MXN, 0), add(MXN, 0);
+
+void dfs(int node = 1, int p = 0)
+{
+	val[node] = l[node];
+	for (int nxt : adj[node]) if (nxt != p)
+	{
+		dfs(nxt, node);
+		val[nxt] -= add[nxt], add[node] += add[nxt];
+	}
+
+	val[node] += add[node], l[node] += add[node], r[node] += add[node];
+	for (int nxt : adj[node]) if (nxt != p)
+	{
+		val[nxt] += add[node];
+		val[node] = fmax(val[node], val[nxt]);
+	}
+
+	if (val[node] > r[node])
+	{
+		val[node] = r[node];
+		for (int nxt : adj[node]) if (nxt != p) val[node] += fmax(0, val[nxt] - r[node]), add[node] += fmax(0, val[nxt] - r[node]);
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		for (int i = 1; i <= n; i++) cin >> l[i] >> r[i];
+		for (int i = 1; i < n; i++)
+		{
+			int a, b;
+			cin >> a >> b;
+			adj[a].push_back(b), adj[b].push_back(a);
+		}
+
+		dfs();
+		cout << val[1] << "\n";
+		for (int i = 1; i <= n; i++) l[i] = 0, r[i] = 0, adj[i].clear(), val[i] = 0, add[i] = 0;
+	}
+}
