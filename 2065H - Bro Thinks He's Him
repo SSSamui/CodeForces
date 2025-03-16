@@ -1,0 +1,258 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+using ll = long long;
+ 
+const int sz = 1 << 18;
+const int MOD = 998244353;
+ 
+vector<ll> tree0(2 * sz, 0), tree1(2 * sz, 0), revtree0(2 * sz, 0), revtree1(2 * sz, 0);
+ 
+void upd0(int node, ll tadd)
+{
+	node += sz;
+	while (node > 0)
+	{
+		tree0[node] += tadd;
+		tree0[node] %= MOD;
+		if (tree0[node] < 0) tree0[node] += MOD;
+		node /= 2;
+	}
+}
+ 
+void upd1(int node, ll tadd)
+{
+	node += sz;
+	while (node > 0)
+	{
+		tree1[node] += tadd;
+		tree1[node] %= MOD;
+		if (tree1[node] < 0) tree1[node] += MOD;
+		node /= 2;
+	}
+}
+ 
+void updrev0(int node, ll tadd)
+{
+	node += sz;
+	while (node > 0)
+	{
+		revtree0[node] += tadd;
+		revtree0[node] %= MOD;
+		if (revtree0[node] < 0) revtree0[node] += MOD;
+		node /= 2;
+	}
+}
+ 
+void updrev1(int node, ll tadd)
+{
+	node += sz;
+	while (node > 0)
+	{
+		revtree1[node] += tadd;
+		revtree1[node] %= MOD;
+		if (revtree1[node] < 0) revtree1[node] += MOD;
+		node /= 2;
+	}
+}
+ 
+ll rq0(int l, int r)
+{
+	l += sz, r += sz;
+	ll ans = 0;
+	while (l <= r)
+	{
+		if (l % 2 == 1) ans += tree0[l++];
+		if (r % 2 == 0) ans += tree0[r--];
+		ans %= MOD, l /= 2, r /= 2;
+	}
+ 
+	return ans;
+}
+ 
+ll rq1(int l, int r)
+{
+	l += sz, r += sz;
+	ll ans = 0;
+	while (l <= r)
+	{
+		if (l % 2 == 1) ans += tree1[l++];
+		if (r % 2 == 0) ans += tree1[r--];
+		ans %= MOD, l /= 2, r /= 2;
+	}
+ 
+	return ans;
+}
+ 
+ll rqrev0(int l, int r)
+{
+	l += sz, r += sz;
+	ll ans = 0;
+	while (l <= r)
+	{
+		if (l % 2 == 1) ans += revtree0[l++];
+		if (r % 2 == 0) ans += revtree0[r--];
+		ans %= MOD, l /= 2, r /= 2;
+	}
+ 
+	return ans;
+}
+ 
+ll rqrev1(int l, int r)
+{
+	l += sz, r += sz;
+	ll ans = 0;
+	while (l <= r)
+	{
+		if (l % 2 == 1) ans += revtree1[l++];
+		if (r % 2 == 0) ans += revtree1[r--];
+		ans %= MOD, l /= 2, r /= 2;
+	}
+ 
+	return ans;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int count = 0;
+	ll exp = 1;
+	while (count < 200001)
+	{
+		upd0(count, exp), updrev0(count, exp);
+		count++, exp *= 2;
+		exp %= MOD;
+	}
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		string s;
+		cin >> s;
+		int n = s.size();
+		ll ans = rq0(n, n) + rq1(n, n) - 1;
+		for (int i = 0; i < n; i++)
+		{
+			if (s[i] == '0')
+			{
+				if (rq0(i, i) == 0)
+				{
+					upd0(i, rq1(i, i));
+					upd1(i, -rq1(i, i));
+				}
+ 
+				if (rqrev0(n - i - 1, n - i - 1) == 0)
+				{
+					updrev0(n - i - 1, rqrev1(n - i - 1, n - i - 1));
+					updrev1(n - i - 1, -rqrev1(n - i - 1, n - i - 1));
+				}
+ 
+				ll tadd = rq0(n - i - 1, n - i - 1) + rq1(n - i - 1, n - i - 1);
+				tadd *= rq1(0, i - 1);
+				tadd %= MOD;
+				ans += tadd;
+				ans %= MOD;
+			}
+ 
+			else
+			{
+				if (rq1(i, i) == 0)
+				{
+					upd1(i, rq0(i, i));
+					upd0(i, -rq0(i, i));
+				}
+ 
+				if (rqrev1(n - i - 1, n - i - 1) == 0)
+				{
+					updrev1(n - i - 1, rqrev0(n - i - 1, n - i - 1));
+					updrev0(n - i - 1, -rqrev0(n - i - 1, n - i - 1));
+				}
+ 
+				ll tadd = rq0(n - i - 1, n - i - 1) + rq1(n - i - 1, n - i - 1);
+				tadd *= rq0(0, i - 1);
+				tadd %= MOD;
+				ans += tadd;
+				ans %= MOD;
+			}
+		}
+ 
+		int q;
+		cin >> q;
+		vector<int> mod(q);
+		for (int i = 0; i < q; i++) cin >> mod[i];
+		for (int i = 0; i < q; i++)
+		{
+			int ind = mod[i];
+			ind--;
+ 
+			if (s[ind] == '0')
+			{
+				s[ind] = '1';
+				upd1(ind, rq0(ind, ind));
+				upd0(ind, -rq0(ind, ind));
+				updrev1(n - ind - 1, rqrev0(n - ind - 1, n - ind - 1));
+				updrev0(n - ind - 1, -rqrev0(n - ind - 1, n - ind - 1));
+ 
+				ans += rq0(0, ind - 1);
+				ans -= rq1(0, ind - 1);
+				ans %= MOD;
+				if (ans < 0) ans += MOD;
+ 
+				ans += rqrev0(0, n - ind - 2);
+				ans -= rqrev1(0, n - ind - 2);
+				ans %= MOD;
+				if (ans < 0) ans += MOD;
+ 
+				ll tadd = rq0(0, ind - 1) * rqrev0(0, n - ind - 2) * 2;
+				tadd %= MOD;
+				ans += tadd;
+				ans %= MOD;
+ 
+				ll tsub = rq1(0, ind - 1) * rqrev1(0, n - ind - 2) * 2;
+				tsub %= MOD;
+				ans -= tsub;
+				if (ans < 0) ans += MOD;
+			}
+ 
+			else
+			{
+				s[ind] = '0';
+				upd0(ind, rq1(ind, ind));
+				upd1(ind, -rq1(ind, ind));
+				updrev0(n - ind - 1, rqrev1(n - ind - 1, n - ind - 1));
+				updrev1(n - ind - 1, -rqrev1(n - ind - 1, n - ind - 1));
+ 
+				ans += rq1(0, ind - 1);
+				ans -= rq0(0, ind - 1);
+				ans %= MOD;
+				if (ans < 0) ans += MOD;
+ 
+				ans += rqrev1(0, n - ind - 2);
+				ans -= rqrev0(0, n - ind - 2);
+				ans %= MOD;
+				if (ans < 0) ans += MOD;
+ 
+				ll tadd = rq1(0, ind - 1) * rqrev1(0, n - ind - 2) * 2;
+				tadd %= MOD;
+				ans += tadd;
+				ans %= MOD;
+ 
+				ll tsub = rq0(0, ind - 1) * rqrev0(0, n - ind - 2) * 2;
+				tsub %= MOD;
+				ans -= tsub;
+				if (ans < 0) ans += MOD;
+			}
+ 
+			cout << ans;
+			if (i < q - 1) cout << ' ';
+		}
+ 
+		cout << "\n";
+	}
+}
