@@ -1,0 +1,56 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+const int sz = 1 << 21;
+ 
+vector<int> tree(2 * sz, 0);
+ 
+void inc(int ind)
+{
+	ind += sz;
+	while (ind > 0)
+	{
+		tree[ind]++;
+		ind /= 2;
+	}
+}
+ 
+int rq(int l, int r)
+{
+	l += sz, r += sz;
+	int ans = 0;
+	while (l <= r)
+	{
+		if (l % 2 == 1) ans += tree[l++];
+		if (r % 2 == 0) ans += tree[r--];
+		l /= 2, r /= 2;
+	}
+ 
+	return ans;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n;
+	cin >> n;
+	ll ans = 0;
+	int curr = 3 * n;
+	while (n--)
+	{
+		inc(curr);
+		char c;
+		cin >> c;
+		if (c == '0') curr++;
+		else curr -= 3;
+		ans += 1ll * (rq(0, curr - 2) + rq(curr + 1, curr + 1));
+	}
+ 
+	cout << ans;
+}
