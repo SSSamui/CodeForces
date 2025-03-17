@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+using namespace std;
+using ll = long long;
+ 
+const ll MOD = 1e9 + 7;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		map<int, ll> curr;
+		curr[0] = 1ll;
+		int cxor = 0;
+ 
+		ll ans = 1ll;
+		while (n--)
+		{
+			int a;
+			cin >> a;
+			int nxor = cxor ^ a;
+			if (curr.count(cxor) == 1)
+			{
+				ans += 2 * curr[cxor];
+				ans %= MOD;
+				curr[cxor] *= 3;
+				curr[cxor] %= MOD;
+				if (curr.count(nxor) == 1)
+				{
+					ans += 2 * curr[nxor];
+					ans %= MOD;
+					curr[cxor] += 2 * curr[nxor];
+					curr[cxor] %= MOD;
+				}
+			}
+ 
+			else if (curr.count(nxor) == 1)
+			{
+				ans += 2 * curr[nxor];
+				ans %= MOD;
+				curr[cxor] = 2 * curr[nxor];
+				curr[cxor] %= MOD;
+			}
+ 
+			cxor = nxor;
+		}
+ 
+		cout << ans << "\n";
+	}
+}
