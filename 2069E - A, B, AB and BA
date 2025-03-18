@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+ 
+bool solve(string s, int a, int b, int c, int d)
+{
+	int n = s.size();
+	s.push_back(s.back());
+	vector<int> acnt(n + 1, 0), bcnt(n + 1, 0);
+	int lstlen = 1;
+	char stt = s[0];
+	for (int i = 1; i <= n; i++)
+	{
+		if (s[i] != s[i - 1]) lstlen++;
+		else
+		{
+			if (stt == 'A') acnt[lstlen]++;
+			else bcnt[lstlen]++;
+			stt = s[i], lstlen = 1;
+		}
+	}
+ 
+	bool cont = true;
+	int ind = 2;
+	while (cont)
+	{
+		if (ind > n) cont = false;
+		else
+		{
+			bool ccont = true;
+			while (ccont)
+			{
+				if (acnt[ind] == 0) ccont = false, ind += 2;
+				else if (c < ind / 2) cont = false, ccont = false;
+				else c -= ind / 2, acnt[ind]--;
+			}
+		}
+	}
+ 
+	cont = true, ind = 2;
+	while (cont)
+	{
+		if (ind > n) cont = false;
+		else
+		{
+			bool ccont = true;
+			while (ccont)
+			{
+				if (bcnt[ind] == 0) ccont = false, ind += 2;
+				else if (d < ind / 2) cont = false, ccont = false;
+				else d -= ind / 2, bcnt[ind]--;
+			}
+		}
+	}
+ 
+	int csz = 0, rem = 0;
+	for (int i = 1; i <= n; i++)
+	{
+		if (i % 2 == 1)
+		{
+			csz += (acnt[i] + bcnt[i]) * (i + 1);
+			a += bcnt[i], b += acnt[i];
+			rem += (i / 2) * (acnt[i] + bcnt[i]);
+		}
+ 
+		else
+		{
+			csz += (acnt[i] + bcnt[i]) * i;
+			rem += ((i / 2) - 1) * (acnt[i] + bcnt[i]);
+		}
+	}
+ 
+	if (c + d < rem) rem = c + d;
+	csz -= 2 * rem;
+	csz /= 2;
+	if (a < csz) return false;
+	if (b < csz) return false;
+	return true;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		string s;
+		cin >> s;
+		int a, b, c, d;
+		cin >> a >> b >> c >> d;
+		if (solve(s, a, b, c, d)) cout << "YES\n";
+		else cout << "NO\n";
+	}
+}
