@@ -1,0 +1,89 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+vector<pair<int, int>> pfx(0);
+int n, p;
+ 
+int a(ll m)
+{
+	if (m <= 2 * n) return (pfx[m].first + pfx[m].second) - (pfx[m - 1].first + pfx[m - 1].second);
+	if ((m / 2) % 2 == 1) return p;
+	return p ^ a(m / 2);
+}
+ 
+ll sum(ll m, int s)
+{
+	if (s == 2) return sum(m, 0) + sum(m, 1);
+	if (m <= 2ll * n)
+	{
+		if (s == 0) return 1ll * pfx[m].first;
+		return 1ll * pfx[m].second;
+	}
+ 
+	if (m % 2 == 0)
+	{
+		if (s == 0) return sum(m + 1, s);
+		return sum(m + 1, s) - a(m + 1);
+	}
+ 
+	if (m % 4 == 3)
+	{
+		if (s == 1) return sum(m + 1, s);
+		return sum(m + 1, s) - a(m + 1);
+	}
+ 
+	ll e = sum(m / 2, 0) - sum(n, 0);
+	ll both = e;
+	if (p == 1) both = (m / 2ll) - (1ll * n) + 1ll - e;
+	return sum(1ll * (2 * n - 1), s) + both;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		ll l, r;
+		cin >> n >> l >> r;
+ 
+		pfx.push_back({ 0, 0 });
+		for (int i = 1; i <= n; i++)
+		{
+			pfx.push_back(pfx.back());
+			int A;
+			cin >> A;
+			p += A;
+			if (i % 2 == 0) pfx.back().first += A;
+			else pfx.back().second += A;
+		}
+ 
+		if (n % 2 == 0)
+		{
+			int A = (pfx[n / 2].first + pfx[n / 2].second) % 2;
+			pfx.push_back(pfx.back());
+			pfx.back().second += A;
+			n++;
+			p += A;
+		}
+ 
+		p %= 2;
+		for (int i = n + 1; i <= 2 * n; i++)
+		{
+			int A = (pfx[i / 2].first + pfx[i / 2].second) % 2;
+			pfx.push_back(pfx.back());
+			if (i % 2 == 0) pfx.back().first += A;
+			else pfx.back().second += A;
+		}
+ 
+		cout << sum(r, 2) - sum(l - 1ll, 2) << "\n";
+		pfx.clear(), p = 0;
+	}
+}
