@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+const ll MOD = 1e9 + 7;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		ll n, k;
+		cin >> n >> k;
+ 
+		ll ans = 0;
+		if (k > n)
+		{
+			ans = (((k - n) % MOD) * n) % MOD;
+			k = n;
+		}
+ 
+		while (k * k > n)
+		{
+			ll N = n / k;
+			ll L = n / (N + 1);
+ 
+			ll tadd = (k + L + 1ll) * (k - L) / 2ll;
+			tadd %= MOD;
+			tadd *= n;
+			tadd %= MOD;
+			ans = (ans + tadd) % MOD;
+ 
+			tadd = N * (k - L);
+			tadd %= MOD;
+			ans = (ans + tadd) % MOD;
+ 
+			ll tsub = k * (k + 1);
+			tsub %= MOD;
+			tsub *= (2ll * k + 1ll);
+			tsub %= MOD;
+			tsub *= 166666668ll;
+			tsub %= MOD;
+ 
+			ll tsub1 = L * (L + 1);
+			tsub1 %= MOD;
+			tsub1 *= (2ll * L + 1ll);
+			tsub1 %= MOD;
+			tsub1 *= 166666668ll;
+			tsub1 %= MOD;
+			tsub -= tsub1;
+			if (tsub < 0) tsub += MOD;
+ 
+			tsub *= N;
+			tsub %= MOD;
+ 
+			ans -= tsub;
+			if (ans < 0) ans += MOD;
+			k = L;
+		}
+ 
+		while (k > 1)
+		{
+			ll nstr = 0, nn = n;
+			while (nn > 0)
+			{
+				nstr *= k;
+				nstr %= MOD;
+				nstr += (nn % k);
+				nstr %= MOD;
+				nn /= k;
+			}
+ 
+			ans = (ans + nstr) % MOD;
+			k--;
+		}
+ 
+		cout << ans << "\n";
+	}
+}
