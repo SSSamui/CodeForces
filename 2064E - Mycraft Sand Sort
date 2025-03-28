@@ -1,0 +1,103 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+ 
+const int MXN = 2e5 + 1;
+const ll MOD = 998244353;
+const int sz = 1 << 18;
+ 
+vector<int> p(MXN), csz(MXN), segtree(2 * sz);
+ 
+int rt(int node)
+{
+	if (p[node] == node) return node;
+	p[node] = rt(p[node]);
+	return p[node];
+}
+ 
+void join(int a, int b)
+{
+	a = rt(a), b = rt(b);
+	if (a == b) return;
+	if (csz[a] < csz[b]) swap(a, b);
+	csz[a] += csz[b];
+	csz[b] = 0;
+	p[b] = a;
+}
+ 
+void upd(int node, int toupd)
+{
+	node += sz;
+	segtree[node] = toupd;
+	while (node > 1)
+	{
+		node /= 2;
+		segtree[node] = max(segtree[2 * node], segtree[2 * node + 1]);
+	}
+}
+ 
+int rq(int l, int r)
+{
+	l += sz, r += sz;
+	int ans = 0;
+	while (l <= r)
+	{
+		if (l % 2 == 1) ans = max(ans, segtree[l++]);
+		if (r % 2 == 0) ans = max(ans, segtree[r--]);
+		l /= 2, r /= 2;
+	}
+ 
+	return ans;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> l(n);
+		for (int i = 0; i < n; i++) cin >> l[i];
+		vector<int> c(n);
+		for (int i = 0; i < n; i++) cin >> c[i];
+		for (int i = 0; i < n; i++) upd(i, l[i]), p[i] = i, csz[i] = 1;
+ 
+		vector<vector<int>> cind(n + 1, vector<int>(0));
+		for (int i = 0; i < n; i++) cind[c[i]].push_back(i);
+ 
+		ll ans = 1;
+		for (int i = 1; i <= n; i++)
+		{
+			vector<pair<int, int>> lenind(0);
+			vector<pair<int, pair<int, int>>> gap(0);
+			for (int j = 0; j < cind[i].size(); j++) lenind.push_back({ l[cind[i][j]], cind[i][j] });
+			for (int j = 1; j < cind[i].size(); j++) gap.push_back({ rq(cind[i][j - 1] + 1, cind[i][j] - 1), {cind[i][j - 1], cind[i][j]} });
+			sort(lenind.begin(), lenind.end()), sort(gap.begin(), gap.end());
+ 
+			int gapind = 0;
+			for (int j = 0; j < lenind.size(); j++)
+			{
+				while ((gapind < gap.size()) && (gap[gapind].first <= lenind[j].first))
+				{
+					join(gap[gapind].second.first, gap[gapind].second.second);
+					gapind++;
+				}
+ 
+				ans *= csz[rt(lenind[j].second)];
+				csz[rt(lenind[j].second)]--;
+				ans %= MOD;
+			}
+		}
+ 
+		cout << ans << "\n";
+	}
+}
