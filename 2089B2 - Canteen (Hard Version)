@@ -1,0 +1,76 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+#include <queue>
+#include <stack>
+using namespace std;
+using ll = long long;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		ll k;
+		cin >> n >> k;
+ 
+		vector<ll> a(n), b(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+		for (int i = 0; i < n; i++) cin >> b[i];
+		reverse(a.begin(), a.end()), reverse(b.begin(), b.end());
+ 
+		int l = 1, r = n;
+		while (l < r)
+		{
+			int m = l + (r - l) / 2;
+ 
+			ll ans = 0;
+			queue<pair<ll, int>> tprc;
+			stack<pair<ll, int>> fin;
+			for (int i = 0; i < n; i++) tprc.push({ a[i] - b[i], 1 });
+			while (!tprc.empty())
+			{
+				if (tprc.front().first <= 0)
+				{
+					fin.push(tprc.front());
+					tprc.pop();
+				}
+ 
+				else if (fin.empty())
+				{
+					tprc.push(tprc.front());
+					tprc.pop();
+				}
+ 
+				else if (tprc.front().second + fin.top().second <= m)
+				{
+					tprc.front().first += fin.top().first, tprc.front().second += fin.top().second;
+					fin.pop();
+				}
+ 
+				else
+				{
+					ans += tprc.front().first;
+					fin.push({ 0, tprc.front().second });
+					tprc.pop();
+				}
+			}
+ 
+			if (ans <= k) r = m;
+			else l = m + 1;
+		}
+ 
+		ll sum = 0;
+		for (int i = 0; i < n; i++) sum += a[i];
+		if (sum <= k) l = 0;
+ 
+		cout << l << "\n";
+	}
+}
