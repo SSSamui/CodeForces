@@ -1,0 +1,58 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+ 
+int main()
+{
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		ll k;
+		cin >> n >> k;
+		vector<ll> a(n), b(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+		for (int i = 0; i < n; i++) cin >> b[i];
+		reverse(a.begin(), a.end()), reverse(b.begin(), b.end());
+ 
+		queue<pair<ll, int>> tprc;
+		stack<pair<ll, int>> fin;
+		for (int i = 0; i < n; i++) tprc.push({ a[i] - b[i], 1 });
+		while (!tprc.empty())
+		{
+			if (tprc.front().first <= 0)
+			{
+				fin.push(tprc.front());
+				tprc.pop();
+			}
+ 
+			else if (fin.empty())
+			{
+				tprc.push(tprc.front());
+				tprc.pop();
+			}
+ 
+			else
+			{
+				tprc.front().first += fin.top().first, tprc.front().second += fin.top().second;
+				fin.pop();
+			}
+		}
+ 
+		int ans = 0;
+		while (!fin.empty())
+		{
+			ans = max(ans, fin.top().second);
+			fin.pop();
+		}
+ 
+		cout << ans << "\n";
+	}
+}
