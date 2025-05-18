@@ -1,0 +1,70 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+ 
+const int MXA = 1e6 + 1;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n, q;
+	cin >> n >> q;
+ 
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+ 
+	int bsize = sqrt(n);
+	vector<pair<pair<int, int>, pair<int, int>>> qur(0);
+	for (int i = 0; i < q; i++)
+	{
+		int l, r;
+		cin >> l >> r;
+		l--, r--;
+		qur.push_back({ {l / bsize, r}, {l, i} });
+	}
+ 
+	sort(qur.begin(), qur.end());
+	vector<ll> ans(q);
+	int ind = 0;
+	while (ind < q)
+	{
+		vector<int> cnt(MXA, 0);
+		int bnum = qur[ind].first.first;
+		int l = bnum * bsize, r = bnum * bsize - 1;
+		ll curr = 0;
+		while ((ind < q) && (qur[ind].first.first == bnum))
+		{
+			while (r < qur[ind].first.second)
+			{
+				r++;
+				cnt[a[r]]++;
+				curr += 1ll * a[r] * (2 * cnt[a[r]] - 1);
+			}
+ 
+			while (l < qur[ind].second.first)
+			{
+				cnt[a[l]]--;
+				curr -= 1ll * a[l] * (2 * cnt[a[l]] + 1);
+				l++;
+			}
+ 
+			while (l > qur[ind].second.first)
+			{
+				l--;
+				cnt[a[l]]++;
+				curr += 1ll * a[l] * (2 * cnt[a[l]] - 1);
+			}
+ 
+			ans[qur[ind].second.second] = curr;
+			ind++;
+		}
+	}
+ 
+	for (int i = 0; i < q; i++) cout << ans[i] << "\n";
+}
