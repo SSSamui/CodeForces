@@ -1,0 +1,117 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+#include <map>
+using namespace std;
+using ll = long long;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n;
+	ll k;
+	cin >> n >> k;
+
+	vector<int> sgn(n);
+	for (int i = 0; i < n; i++) cin >> sgn[i];
+	vector<ll> pref(1, 0);
+	for (int i = 0; i < n; i++)
+	{
+		ll tadd;
+		cin >> tadd;
+		if (sgn[i] == 2) tadd = -tadd;
+		pref.push_back(pref.back() + tadd);
+	}
+
+	n++;
+	vector<ll> impnum(0);
+	for (int i = 0; i < n; i++) impnum.push_back(pref[i]), impnum.push_back(pref[i] - k), impnum.push_back(pref[i] + k);
+	sort(impnum.begin(), impnum.end());
+	map<ll, int> inv;
+	for (int i = 0; i < impnum.size(); i++) inv[impnum[i]] = i;
+
+	vector<int> stt(n), med(n), end(n);
+	for (int i = 0; i < n; i++) stt[i] = inv[pref[i] - k], med[i] = inv[pref[i]], end[i] = inv[pref[i] + k];
+
+	vector<vector<int>> finv(impnum.size(), vector<int>(0));
+	for (int i = 0; i < n; i++) finv[med[i]].push_back(i);
+	vector<int> numrem(n);
+	for (int i = 0; i < n; i++)
+	{
+		int l = -1, r = finv[end[i]].size() - 1;
+		while (l < r)
+		{
+			int mid = l + (r - l + 1) / 2;
+			if (finv[end[i]][mid] > i) r = mid - 1;
+			else l = mid;
+		}
+
+		numrem[i] = l + 1;
+	}
+
+	int bsize = sqrt(n);
+	int ind = 0;
+	int q;
+	cin >> q;
+	vector<pair<pair<int, int>, pair<int, int>>> qur(0);
+	for (int i = 0; i < q; i++)
+	{
+		int l, r;
+		cin >> l >> r;
+		l--;
+		qur.push_back({ {l / bsize, r}, {l, i} });
+	}
+
+	sort(qur.begin(), qur.end());
+	vector<ll> ans(q);
+	while (ind < q)
+	{
+		int bnum = qur[ind].first.first;
+		int r = bnum * bsize - 1;
+		ll start = 0;
+		int cind = n - 1;
+		while (cind > r)
+		{
+			finv[med[cind]].pop_back();
+			cind--;
+		}
+
+		vector<int> orgsz(finv.size());
+		for (int i = 0; i < finv.size(); i++) orgsz[i] = finv[i].size();
+		while ((ind < q) && (qur[ind].first.first == bnum))
+		{
+			while (r < qur[ind].first.second)
+			{
+				r++;
+				start += 1ll * (finv[stt[r]].size() - orgsz[stt[r]]);
+				finv[med[r]].push_back(r);
+			}
+
+			int l = bnum * bsize;
+			ll curr = start;
+			while ((ind < q) && ((qur[ind].first.second == r) && (qur[ind].first.first == bnum)))
+			{
+				while (l < qur[ind].second.first)
+				{
+					curr -= 1ll * (finv[end[l]].size() - numrem[l]);
+					l++;
+				}
+
+				ans[qur[ind].second.second] = curr;
+				ind++;
+			}
+		}
+
+		while (r < n - 1)
+		{
+			r++;
+			finv[med[r]].push_back(r);
+		}
+	}
+
+	for (int i = 0; i < q; i++) cout << ans[i] << "\n";
+}
