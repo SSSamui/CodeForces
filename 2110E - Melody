@@ -1,0 +1,130 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+#include <set>
+#include <queue>
+#include <stack>
+using namespace std;
+ 
+map<int, set<pair<int, int>>> edg;
+set<int> vis;
+ 
+void dfs(int node)
+{
+	vis.insert(node);
+	for (pair<int, int> nxt : edg[node]) if (vis.count(nxt.first) == 0) dfs(nxt.first);
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		for (int i = 1; i <= n; i++)
+		{
+			int v, p;
+			cin >> v >> p;
+			p += 1000000000;
+			edg[v].insert({ p, i }), edg[p].insert({ v, i });
+		}
+ 
+		int stt = (*edg.begin()).first;
+		dfs(stt);
+		if (vis.size() != edg.size()) cout << "NO\n";
+		else
+		{
+			int ovtx = 0;
+			for (auto it : edg) if (it.second.size() % 2 == 1) ovtx++;
+			if (ovtx > 2) cout << "NO\n";
+			else
+			{
+				cout << "YES\n";
+				vector<int> fedg(0);
+				stack<queue<int>> cnde, cedg;
+				stt = 0;
+				int end = 0;
+				if (ovtx == 0) stt = (*edg.begin()).first, end = (*edg.begin()).first;
+				else for (auto it : edg) if (it.second.size() % 2 == 1)
+				{
+					if (stt == 0) stt = it.first;
+					else end = it.first;
+				}
+ 
+				queue<int> emp;
+				int curr = stt;
+				int nxt = (*edg[curr].begin()).first, nedg = (*edg[curr].begin()).second;
+				cnde.push(emp), cedg.push(emp);
+				cnde.top().push(curr), cedg.top().push(nedg);
+				cnde.top().push(nxt);
+ 
+				edg[curr].erase({ nxt, nedg }), edg[nxt].erase({ curr, nedg });
+				if (edg[curr].size() == 0) edg.erase(curr);
+				if (edg[nxt].size() == 0) edg.erase(nxt);
+				curr = nxt;
+				while (curr != end)
+				{
+					nxt = (*edg[curr].begin()).first, nedg = (*edg[curr].begin()).second;
+					cnde.top().push(nxt), cedg.top().push(nedg);
+					edg[curr].erase({ nxt, nedg }), edg[nxt].erase({ curr, nedg });
+					if (edg[curr].size() == 0) edg.erase(curr);
+					if (edg[nxt].size() == 0) edg.erase(nxt);
+					curr = nxt;
+				}
+ 
+				while (!cnde.empty())
+				{
+					if (edg.count(cnde.top().front()) == 0)
+					{
+						if (cedg.top().size() == 0) cnde.pop(), cedg.pop();
+						else
+						{
+							fedg.push_back(cedg.top().front());
+							cnde.top().pop(), cedg.top().pop();
+						}
+					}
+ 
+					else
+					{
+						curr = cnde.top().front(), end = cnde.top().front();
+						nxt = (*edg[curr].begin()).first, nedg = (*edg[curr].begin()).second;
+						cnde.push(emp), cedg.push(emp);
+						cnde.top().push(curr), cedg.top().push(nedg);
+						cnde.top().push(nxt);
+ 
+						edg[curr].erase({ nxt, nedg }), edg[nxt].erase({ curr, nedg });
+						if (edg[curr].size() == 0) edg.erase(curr);
+						if (edg[nxt].size() == 0) edg.erase(nxt);
+						curr = nxt;
+						while (curr != end)
+						{
+							nxt = (*edg[curr].begin()).first, nedg = (*edg[curr].begin()).second;
+							cnde.top().push(nxt), cedg.top().push(nedg);
+							edg[curr].erase({ nxt, nedg }), edg[nxt].erase({ curr, nedg });
+							if (edg[curr].size() == 0) edg.erase(curr);
+							if (edg[nxt].size() == 0) edg.erase(nxt);
+							curr = nxt;
+						}
+					}
+				}
+ 
+				for (int i = 0; i < n; i++)
+				{
+					cout << fedg[i];
+					if (i < n - 1) cout << ' ';
+				}
+ 
+				cout << "\n";
+			}
+		}
+ 
+		edg.clear(), vis.clear();
+	}
+}
