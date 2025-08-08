@@ -1,0 +1,68 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+using namespace std;
+using ll = long long;
+ 
+const int MXN = 2e5 + 1;
+ 
+vector<vector<pair<int, ll>>> edg(MXN, vector<pair<int, ll>>(0)), chd(MXN, vector<pair<int, ll>>(0));
+vector<map<int, ll>> cnt(MXN);
+vector<int> col(MXN);
+vector<pair<int, ll>> par(MXN);
+ll ans = 0;
+ 
+void dfs(int node = 1, int p = 0)
+{
+	for (pair<int, ll> nxt : edg[node]) if (nxt.first != p)
+	{
+		chd[node].push_back(nxt), cnt[node][col[nxt.first]] += nxt.second, par[nxt.first] = { node, nxt.second };
+		if (col[nxt.first] != col[node]) ans += nxt.second;
+		dfs(nxt.first, node);
+	}
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, q;
+		cin >> n >> q;
+		for (int i = 1; i <= n; i++) cin >> col[i];
+		for (int i = 1; i < n; i++)
+		{
+			int a, b;
+			ll c;
+			cin >> a >> b >> c;
+			edg[a].push_back({ b, c }), edg[b].push_back({ a, c });
+		}
+ 
+		dfs();
+		while (q--)
+		{
+			int v, x;
+			cin >> v >> x;
+ 
+			ans += cnt[v][col[v]] - cnt[v][x];
+			if (v != 1)
+			{
+				if (col[v] == col[par[v].first]) ans += par[v].second;
+				if (x == col[par[v].first]) ans -= par[v].second;
+				cnt[par[v].first][col[v]] -= par[v].second, cnt[par[v].first][x] += par[v].second;
+			}
+ 
+			col[v] = x;
+			cout << ans << "\n";
+		}
+ 
+		for (int i = 1; i <= n; i++) col[i] = 0, cnt[i].clear(), par[i] = { 0, 0 }, edg[i].clear(), chd[i].clear();
+		ans = 0;
+	}
+}
