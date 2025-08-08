@@ -1,0 +1,81 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	vector<ll> g(12);
+	ll currsum = 0;
+	for (int i = 0; i < 12; i++)
+	{
+		ll dsc = currsum * 8 + 9;
+		ll fg = sqrt(dsc);
+		if (fg * fg < dsc) fg++;
+		fg /= 2;
+		g[i] = fg, currsum += fg * (fg + 1) / 2;
+	}
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+ 
+		int l = 1, r = n;
+		while (l < r)
+		{
+			int m = l + (r - l + 1) / 2;
+			cout << "? " << m;
+			for (int i = 1; i <= m; i++) cout << ' ' << i;
+			cout << "\n";
+			cout.flush();
+			int f;
+			cin >> f;
+			if (f == 0) l = m;
+			else r = m - 1;
+		}
+ 
+		l++;
+		if (l > n) l = 1;
+ 
+		vector<char> ans(0);
+		int ind = 1;
+		while (ind <= n)
+		{
+			int cnt = 11;
+			vector<int> tprnt(0);
+			while ((cnt > -1) && (ind <= n))
+			{
+				for (int i = 0; i < g[cnt]; i++) tprnt.push_back(ind), tprnt.push_back(l);
+				tprnt.push_back(l);
+				cnt--, ind++;
+			}
+ 
+			cout << "? " << tprnt.size();
+			for (int i = 0; i < tprnt.size(); i++) cout << ' ' << tprnt[i];
+			cout << "\n";
+			cout.flush();
+ 
+			int f;
+			cin >> f;
+			for (int i = 11; i > cnt; i--)
+			{
+				ll tmin = g[i] * (g[i] + 1) / 2;
+				if (f < tmin) ans.push_back(')');
+				else f -= tmin, ans.push_back('(');
+			}
+		}
+ 
+		cout << "! ";
+		for (int i = 0; i < ans.size(); i++) cout << ans[i];
+		cout << "\n";
+		cout.flush();
+	}
+}
