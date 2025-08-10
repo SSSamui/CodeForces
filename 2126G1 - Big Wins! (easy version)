@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <stack>
+using namespace std;
+
+const int sz = 1 << 19;
+
+int pref[sz], suff[sz], sum[sz];
+
+void upd(int node, int l, int r, int ind, int tchg)
+{
+	if (l == r)
+	{
+		pref[node] = suff[node] = max(tchg, 0), sum[node] = tchg;
+		return;
+	}
+
+	int lc = node << 1;
+	int rc = lc + 1;
+	int mid = (l + r) >> 1;
+	if (ind > mid) upd(rc, mid + 1, r, ind, tchg);
+	else upd(lc, l, mid, ind, tchg);
+	pref[node] = max(pref[lc], sum[lc] + pref[rc]), suff[node] = max(suff[rc], sum[rc] + suff[lc]), sum[node] = sum[lc] + sum[rc];
+}
+
+vector<int> rq(int node, int l, int r, int a, int b)
+{
+	if (r < a) return { 0, 0, 0 };
+	if (l > b) return { 0, 0, 0 };
+	if ((a <= l) && (r <= b)) return { pref[node], suff[node], sum[node] };
+	int lc = node << 1;
+	int rc = lc + 1;
+	int mid = (l + r) >> 1;
+	vector<int> lv = rq(lc, l, mid, a, b), rv = rq(rc, mid + 1, r, a, b);
+	return { max(lv[0], lv[2] + rv[0]), max(rv[1], rv[2] + lv[1]), lv[2] + rv[2] };
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> a(n + 2, -1);
+		for (int i = 1; i <= n; i++) cin >> a[i];
+		int m = 0;
+		for (int i = 1; i <= n; i++) m = max(m, a[i]);
+
+		vector<vector<int>> inv(m + 1, vector<int>(0));
+		for (int i = 1; i <= n; i++) inv[a[i]].push_back(i);
+
+		stack<int> s;
+		s.push(0);
+		vector<int> lb(n + 1);
+		for (int i = 1; i <= n; i++)
+		{
+			while (a[s.top()] >= a[i]) s.pop();
+			lb[i] = s.top() + 1;
+			s.push(i);
+		}
+
+		s.push(n + 1);
+		vector<int> rb(n + 1);
+		for (int i = n; i > 0; i--)
+		{
+			while (a[s.top()] >= a[i]) s.pop();
+			rb[i] = s.top() - 1;
+			s.push(i);
+		}
+
+		int med = 1;
+		for (int i = 1; i <= n; i++) upd(1, 1, n, i, 1);
+		for (int i : inv[1]) upd(1, 1, n, i, -1);
+
+		int ans = 0;
+		for (int mn = 1; mn <= m; mn++)
+		{
+			for (int i : inv[mn])
+			{
+				int clb = lb[i], crb = rb[i];
+				while ((med < m) && (rq(1, 1, n, clb, i - 1)[1] + rq(1, 1, n, i + 1, crb)[0] + ((mn < med) ? -1 : 1) >= 0))
+				{
+					med++;
+					for (int j : inv[med]) upd(1, 1, n, j, -1);
+				}
+			}
+
+			ans = max(ans, med - mn);
+		}
+
+		cout << ans << "\n";
+	}
+}
