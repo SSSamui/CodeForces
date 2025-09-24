@@ -1,0 +1,57 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<pair<ll, pair<ll, ll>>> slr(0);
+		ll ans = 0;
+		for (int i = 0; i < n; i++)
+		{
+			ll l, r;
+			cin >> l >> r;
+			ans += r - l, slr.push_back({ l + r, {l, r} });
+		}
+
+		sort(slr.begin(), slr.end());
+		int mid = n / 2;
+
+		for (int i = 0; i < mid; i++) ans -= slr[i].second.first;
+		for (int i = mid + 1; i < n; i++) ans += slr[i].second.second;
+
+		if (n % 2 == 0) ans += slr[mid].second.second;
+		else
+		{
+			ll M = ans;
+
+			ll L = M;
+			for (int i = mid - 1; i > -1; i--)
+			{
+				L += slr[i].second.first - slr[i + 1].second.first;
+				ans = max(ans, L);
+			}
+
+			ll R = M;
+			for (int i = mid; i < n - 1; i++)
+			{
+				R += slr[i].second.second - slr[i + 1].second.second;
+				ans = max(ans, R);
+			}
+		}
+
+		cout << ans << "\n";
+	}
+}
