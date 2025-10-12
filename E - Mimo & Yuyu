@@ -1,0 +1,42 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+using namespace std;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, m, k;
+		cin >> n >> m >> k;
+		map<int, int> countTok;
+		countTok[0] = 0;
+		while (k--)
+		{
+			int a, b;
+			cin >> a >> b;
+			countTok[b - 1]++;
+		}
+ 
+		if (m == 1) cout << "Yuyu\n";
+		else if (n == 1)
+		{
+			if (countTok[1] % 2 == 0) cout << "Yuyu\n";
+			else cout << "Mimo\n";
+		}
+ 
+		else
+		{
+			while ((countTok.size() > 1) && (countTok.rbegin()->second % 2 == 0)) countTok.erase(countTok.rbegin()->first);
+			if (countTok.size() == 1) cout << "Yuyu\n";
+			else cout << "Mimo\n";
+		}
+	}
+}
