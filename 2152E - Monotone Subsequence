@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <set>
+#include <algorithm>
+using namespace std;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		if (n == -1) return 0;
+
+		vector<set<int>> subseq(0);
+		set<int> rem;
+		for (int i = 1; i <= n * n + 1; i++) rem.insert(i);
+		bool fin = false;
+		for (int i = 0; !fin && (i < n); i++)
+		{
+			cout << "? " << rem.size();
+			for (int el : rem) cout << ' ' << el;
+			cout << "\n";
+			cout.flush();
+
+			int csz;
+			cin >> csz;
+			if (csz == -1) return 0;
+			set<int> curr;
+			while (csz--)
+			{
+				int a;
+				cin >> a;
+				if (a == -1) return 0;
+				curr.insert(a), rem.erase(a);
+			}
+
+			subseq.push_back(curr);
+			if (curr.size() > n) fin = true;
+		}
+
+		if (fin)
+		{
+			cout << '!';
+			auto it = subseq.back().begin();
+			for (int i = 0; i <= n; i++)
+			{
+				cout << ' ' << *it;
+				it++;
+			}
+
+			cout << "\n";
+			cout.flush();
+		}
+
+		else
+		{
+			vector<int> currseq(1, *rem.begin());
+			int curr = *rem.begin();
+			while (!subseq.empty())
+			{
+				auto it = subseq.back().upper_bound(curr);
+				it--;
+				currseq.push_back(*it);
+				subseq.pop_back(), curr = currseq.back();
+			}
+
+			reverse(currseq.begin(), currseq.end());
+			cout << '!';
+			for (int i = 0; i <= n; i++) cout << ' ' << currseq[i];
+			cout << "\n";
+			cout.flush();
+		}
+	}
+}
