@@ -1,0 +1,45 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+bool solve()
+{
+	int n;
+	cin >> n;
+	if (n < 2) return false;
+	for (int i = 1; i < n; i++)
+	{
+		for (int l = 1; l <= n; l++)
+		{
+			int r = (l + i) % n;
+			if (r == 0) r = n;
+			cout << l << ' ' << r << "\n";
+			cout.flush();
+
+			int x;
+			cin >> x;
+			if (x == 1) return true;
+			if (x == -1) return false;
+		}
+	}
+
+	return false;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		bool res = solve();
+		if (!res) return 0;
+	}
+
+	return 0;
+}
