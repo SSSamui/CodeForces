@@ -1,0 +1,121 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+
+const int sz = 1 << 18;
+
+const ll NEGINF = -1e18;
+
+struct node
+{
+	ll mx = NEGINF;
+	bool act = 0;
+	ll lz = 0;
+};
+
+vector<node> tree(2 * sz);
+
+void pushup(int node)
+{
+	int lc = 2 * node, rc = 2 * node + 1;
+	tree[node].mx = max(tree[lc].mx, tree[rc].mx);
+}
+
+void pushdown(int node)
+{
+	int lc = 2 * node, rc = 2 * node + 1;
+	ll lz = tree[node].lz;
+	tree[node].lz = 0;
+	if (tree[lc].act) tree[lc].mx += lz, tree[lc].lz += lz;
+	if (tree[rc].act) tree[rc].mx += lz, tree[rc].lz += lz;
+}
+
+void reset(int node, int l, int r)
+{
+	tree[node].act = false, tree[node].mx = NEGINF, tree[node].lz = 0;
+	if (l == r) return;
+	int mid = l + (r - l) / 2;
+	int lc = 2 * node, rc = 2 * node + 1;
+	reset(lc, l, mid), reset(rc, mid + 1, r);
+}
+
+void act(int node, int l, int r, int cn, ll val)
+{
+	if (l == r)
+	{
+		tree[node].act = true, tree[node].mx = val;
+		return;
+	}
+
+	pushdown(node);
+	int lc = 2 * node, rc = 2 * node + 1;
+	int mid = l + (r - l) / 2;
+	if (cn > mid) act(rc, mid + 1, r, cn, val);
+	else act(lc, l, mid, cn, val);
+	tree[node].act = true;
+	pushup(node);
+}
+
+void rupd(int node, int l, int r, int a, int b, ll val)
+{
+	if (!tree[node].act) return;
+	if ((l > b) || (r < a)) return;
+	if ((a <= l) && (r <= b))
+	{
+		tree[node].mx += val, tree[node].lz += val;
+		return;
+	}
+
+	pushdown(node);
+	int lc = 2 * node, rc = 2 * node + 1;
+	int mid = l + (r - l) / 2;
+	rupd(lc, l, mid, a, b, val), rupd(rc, mid + 1, r, a, b, val);
+	pushup(node);
+}
+
+ll rq(int node, int l, int r, int a, int b)
+{
+	if (!tree[node].act) return NEGINF;
+	if ((l > b) || (r < a)) return NEGINF;
+	if ((a <= l) && (r <= b)) return tree[node].mx;
+	pushdown(node);
+	int lc = 2 * node, rc = 2 * node + 1;
+	int mid = l + (r - l) / 2;
+	return max(rq(lc, l, mid, a, b), rq(rc, mid + 1, r, a, b));
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+
+		vector<ll> val(n);
+		vector<int> a(n), b(n);
+		for (int i = 0; i < n; i++) cin >> val[i];
+		for (int i = 0; i < n; i++) cin >> a[i];
+		for (int i = 0; i < n; i++) cin >> b[i];
+
+		vector<int> inv(n + 1);
+		for (int i = 0; i < n; i++) inv[b[i]] = i + 1;
+
+		act(1, 0, n, 0, 0);
+		for (int i = 0; i < n; i++)
+		{
+			act(1, 0, n, inv[a[i]], rq(1, 0, n, 0, inv[a[i]]));
+			rupd(1, 0, n, 0, inv[a[i]] - 1, val[a[i] - 1]);
+		}
+
+		cout << tree[1].mx << "\n";
+		reset(1, 0, n);
+	}
+}
