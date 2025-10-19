@@ -1,0 +1,43 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+
+int main()
+{
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		ll l, r;
+		cin >> l >> r;
+		vector<ll> res(r - l + 1, -1);
+		ll tadd = 0, ans = 0;
+		ll cl = l, cr = r;
+		for (ll bit = 1ll << 29; (bit > 0) && (cl <= cr); bit /= 2) if (cr & bit)
+		{
+			if (cl & bit) tadd += bit, ans += bit * (cr - cl + 1), cl -= bit, cr -= bit;
+			else if (cl + cr < bit << 1)
+			{
+				for (ll i = (bit << 1) - 1 - cr; i <= cr; i++) res[i + tadd - l] = (bit << 1) - 1 - i + tadd;
+				cr = (bit << 1) - 2 - cr;
+			}
+
+			else
+			{
+				for (ll i = cl; i <= (bit << 1) - 1 - cl; i++) res[i + tadd - l] = (bit << 1) - 1 - i + tadd;
+				cl = (bit << 1) - cl;
+				tadd += bit, ans += bit * (cr - cl + 1), cl -= bit, cr -= bit;
+			}
+		}
+
+		if (cl == cr) res[cl + tadd - l] = cl + tadd;
+		ll fans = (l + r) * (r - l + 1) - ans;
+		cout << fans << "\n";
+		cout << res[0];
+		for (int i = 1; i < res.size(); i++) cout << ' ' << res[i];
+		cout << "\n";
+	}
+}
