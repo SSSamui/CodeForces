@@ -1,0 +1,142 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+struct node
+{
+	int val = 0, lz = 0, numpeople = 0;
+};
+
+struct tree
+{
+	int n, sz = 1;
+	vector<node> tree;
+
+	void pushup(int node)
+	{
+		int lc = 2 * node, rc = 2 * node + 1;
+		tree[node].val = max(tree[lc].val, tree[rc].val);
+	}
+
+	void pushdown(int node)
+	{
+		int lc = 2 * node, rc = 2 * node + 1;
+		int lz = tree[node].lz;
+		tree[node].lz = 0;
+		tree[lc].val += lz, tree[rc].val += lz;
+		tree[lc].lz += lz, tree[rc].lz += lz;
+	}
+
+	void rinit(int node, int l, int r)
+	{
+		if (l == r)
+		{
+			tree[node].val = l;
+			return;
+		}
+
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		rinit(lc, l, mid), rinit(rc, mid + 1, r);
+		pushup(node);
+	}
+
+	void init(int _n)
+	{
+		n = _n;
+		while (sz <= n) sz *= 2;
+		tree.resize(2 * sz);
+		rinit(1, 0, n);
+	}
+
+	void rupd(int node, int l, int r, int a, int b, int tadd)
+	{
+		if ((r < a) || (l > b)) return;
+		if ((a <= l) && (r <= b))
+		{
+			tree[node].lz += tadd, tree[node].val += tadd;
+			return;
+		}
+
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		rupd(lc, l, mid, a, b, tadd), rupd(rc, mid + 1, r, a, b, tadd);
+		pushup(node);
+	}
+
+	void updpeople(int node, int l, int r, int a, int tadd)
+	{
+		if ((l > a) || (r < a)) return;
+		tree[node].numpeople += tadd;
+		if (l == r) return;
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		updpeople(lc, l, mid, a, tadd), updpeople(rc, mid + 1, r, a, tadd);
+	}
+
+	int findFirstPos(int node, int l, int r)
+	{
+		if (l == r) return l;
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		if (tree[lc].val > 0) return findFirstPos(lc, l, mid);
+		return findFirstPos(rc, mid + 1, r);
+	}
+
+	int pplrq(int node, int l, int r, int a, int b)
+	{
+		if ((r < a) || (l > b)) return 0;
+		if ((a <= l) && (r <= b)) return tree[node].numpeople;
+		int lc = 2 * node, rc = 2 * node + 1;
+		int mid = l + (r - l) / 2;
+		return pplrq(lc, l, mid, a, b) + pplrq(rc, mid + 1, r, a, b);
+	}
+
+	int qur()
+	{
+		if (tree[1].val <= 0) return n;
+		int maxnum = findFirstPos(1, 0, n);
+		return pplrq(1, 0, n, 0, maxnum - 1);
+	}
+};
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int ac, dr;
+	cin >> ac >> dr;
+	int n;
+	cin >> n;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+	vector<int> d(n);
+	for (int i = 0; i < n; i++) cin >> d[i];
+
+	vector<int> res(n);
+	for (int i = 0; i < n; i++) res[i] = max(0, a[i] - ac) + max(0, d[i] - dr);
+
+	tree seg;
+	seg.init(n);
+	for (int i = 0; i < n; i++) seg.rupd(1, 0, n, res[i] + 1, n, -1), seg.updpeople(1, 0, n, res[i], 1);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int k, na, nd;
+		cin >> k >> na >> nd;
+
+		int nres = max(0, na - ac) + max(0, nd - dr);
+		k--;
+		seg.rupd(1, 0, n, res[k] + 1, n, 1), seg.rupd(1, 0, n, nres + 1, n, -1);
+		seg.updpeople(1, 0, n, res[k], -1), seg.updpeople(1, 0, n, nres, 1);
+		res[k] = nres;
+		cout << seg.qur() << "\n";
+	}
+}
