@@ -1,0 +1,229 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <stack>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+ 
+const ll MOD = 998244353;
+ 
+struct node
+{
+	ll val = 0, lz = 1;
+};
+ 
+struct tree
+{
+	int n = 0, sz = 1;
+	vector<node> tree;
+ 
+	void pushup(int node)
+	{
+		int lc = 2 * node, rc = 2 * node + 1;
+		tree[node].val = (tree[lc].val + tree[rc].val) % MOD;
+	}
+ 
+	void pushdown(int node)
+	{
+		int lc = 2 * node, rc = 2 * node + 1;
+		ll lz = tree[node].lz;
+		tree[node].lz = 1;
+ 
+		tree[lc].val = (tree[lc].val * lz) % MOD, tree[rc].val = (tree[rc].val * lz) % MOD;
+		tree[lc].lz = (tree[lc].lz * lz) % MOD, tree[rc].lz = (tree[rc].lz * lz) % MOD;
+	}
+ 
+	void rinit(int node, int l, int r)
+	{
+		tree[node].val = 0, tree[node].lz = 1;
+		if (l == r) return;
+ 
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		rinit(lc, l, mid), rinit(rc, mid + 1, r);
+		pushup(node);
+	}
+ 
+	void init(int _n)
+	{
+		n = _n;
+		while(sz < n) sz *= 2;
+		tree.resize(2 * sz);
+		rinit(1, 0, n - 1);
+	}
+ 
+	void nupd(int node, int l, int r, int updn, ll tadd)
+	{
+		if ((r < updn) || (l > updn)) return;
+		if (l == r)
+		{
+			tree[node].val = (tree[node].val + tadd) % MOD;
+			return;
+		}
+ 
+		pushdown(node);
+		int lc = 2 * node, rc = 2 * node + 1;
+		int mid = l + (r - l) / 2;
+		nupd(lc, l, mid, updn, tadd), nupd(rc, mid + 1, r, updn, tadd);
+		pushup(node);
+	}
+ 
+	void rupd(int node, int l, int r, int a, int b)
+	{
+		if ((r < a) || (l > b)) return;
+		if ((a <= l) && (r <= b))
+		{
+			tree[node].lz = (tree[node].lz * 2) % MOD, tree[node].val = (tree[node].val * 2) % MOD;
+			return;
+		}
+ 
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		rupd(lc, l, mid, a, b), rupd(rc, mid + 1, r, a, b);
+		pushup(node);
+	}
+ 
+	ll rq(int node, int l, int r, int a, int b)
+	{
+		if ((r < a) || (l > b)) return 0ll;
+		if ((a <= l) && (r <= b)) return tree[node].val;
+ 
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		return (rq(lc, l, mid, a, b) + rq(rc, mid + 1, r, a, b)) % MOD;
+	}
+};
+ 
+vector<ll> frontdp(vector<int> a)
+{
+	int n = a.size();
+	stack<int> see;
+	for (int i = n - 1; i > -1; i--)
+	{
+		while (!see.empty() && (a[i] >= see.top())) see.pop();
+		see.push(a[i]);
+	}
+ 
+	vector<int> l(1);
+	while (!see.empty())
+	{
+		l.push_back(see.top());
+		see.pop();
+	}
+ 
+	int m = l.size(), mx = l.back();
+	vector<ll> ans(0);
+	tree dp;
+	dp.init(m);
+	dp.nupd(1, 0, m - 1, 0, 1ll);
+	for (int i = 0; i < n; i++)
+	{
+		int cl = 0, cr = m;
+		while (cl < cr)
+		{
+			int mid = cl + (cr - cl) / 2;
+			if (l[mid] < a[i]) cl = mid + 1;
+			else cr = mid;
+		}
+ 
+		int ind = cl;
+		if (ind < m)
+		{
+			if (l[ind] == a[i])
+			{
+				dp.rupd(1, 0, m - 1, ind, ind);
+				dp.nupd(1, 0, m - 1, ind, dp.rq(1, 0, m - 1, ind - 1, ind - 1));
+				ind++;
+			}
+ 
+			dp.rupd(1, 0, m - 1, ind, m - 1);
+		}
+ 
+		if (a[i] == mx) ans.push_back(dp.rq(1, 0, m - 1, m - 2, m - 2));
+	}
+ 
+	return ans;
+}
+ 
+vector<ll> backdp(vector<int> a)
+{
+	reverse(a.begin(), a.end());
+ 
+	int n = a.size();
+	stack<int> see;
+	for (int i = n - 1; i > -1; i--)
+	{
+		while (!see.empty() && (a[i] >= see.top())) see.pop();
+		see.push(a[i]);
+	}
+ 
+	vector<int> l(1);
+	while (!see.empty())
+	{
+		l.push_back(see.top());
+		see.pop();
+	}
+ 
+	int m = l.size(), mx = l.back();
+	vector<ll> ans(0);
+	tree dp;
+	dp.init(m);
+	dp.nupd(1, 0, m - 1, 0, 1ll);
+	for (int i = 0; i < n; i++)
+	{
+		int cl = 0, cr = m;
+		while (cl < cr)
+		{
+			int mid = cl + (cr - cl) / 2;
+			if (l[mid] < a[i]) cl = mid + 1;
+			else cr = mid;
+		}
+ 
+		int ind = cl;
+		if (ind < m)
+		{
+			if (l[ind] == a[i])
+			{
+				if (a[i] == mx) ans.push_back(dp.rq(1, 0, m - 1, m - 2, m - 1));
+				dp.rupd(1, 0, m - 1, ind, ind);
+				dp.nupd(1, 0, m - 1, ind, dp.rq(1, 0, m - 1, ind - 1, ind - 1));
+				ind++;
+			}
+ 
+			dp.rupd(1, 0, m - 1, ind, m - 1);
+		}
+	}
+ 
+	reverse(ans.begin(), ans.end());
+	return ans;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> a(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+ 
+		vector<ll> l = frontdp(a), r = backdp(a);
+		ll ans = 0;
+		for (int i = 0; i < l.size(); i++)
+		{
+			ans += 1ll * l[i] * r[i];
+			ans %= MOD;
+		}
+ 
+		cout << ans << "\n";
+	}
+}
