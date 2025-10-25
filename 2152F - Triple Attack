@@ -1,0 +1,126 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <cassert>
+using namespace std;
+
+const int MXN = 250001;
+
+vector<vector<int>> blftp(MXN, vector<int>(0)), chd(MXN, vector<int>(0));
+vector<vector<pair<int, int>>> blftn(MXN, vector<pair<int, int>>(0));
+vector<int> dep(MXN, 0);
+
+void dfs(int node)
+{
+	for (int nxt : chd[node])
+	{
+		dep[nxt] = dep[node] + 1;
+		dfs(nxt);
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, z;
+		cin >> n >> z;
+		vector<int> a(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+
+		int nxt = n - 1;
+		for (int i = n - 1; i > -1; i--)
+		{
+			while ((nxt > -1) && (a[nxt] - a[i] > z)) nxt--;
+			blftp[i].push_back(nxt + 1);
+			int ind = 0;
+			while (blftp[blftp[i][ind]].size() > ind)
+			{
+				blftp[i].push_back(blftp[blftp[i][ind]][ind]);
+				ind++;
+			}
+
+			chd[nxt + 1].push_back(i);
+		}
+
+		dep[n] = 0;
+		dfs(n);
+		for (int i = n - 1; i > -1; i--)
+		{
+			int a = i, b = i + 1, curr = 0;
+			if (dep[i] > dep[i + 1]) a = i + 1, b = blftp[i][0], curr++;
+			assert(dep[a] == dep[b]);
+			if (a != b)
+			{
+				curr += 2;
+				int ind = blftp[b].size() - 1;
+				for (int ind = blftp[b].size() - 1; ind > -1; ind--) if (blftp[b].size() > ind) if (blftp[a][ind] != blftp[b][ind])
+				{
+					curr += 2 << ind;
+					a = blftp[a][ind], b = blftp[b][ind];
+				}
+
+				a = blftp[a][0], b = blftp[b][0];
+			}
+
+			blftn[i].push_back({ a, curr });
+			int ind = 0;
+			while (blftn[blftn[i][ind].first].size() > ind)
+			{
+				blftn[i].push_back({ blftn[blftn[i][ind].first][ind].first,
+					blftn[i][ind].second + blftn[blftn[i][ind].first][ind].second });
+				ind++;
+			}
+		}
+
+		int __;
+		cin >> __;
+		while (__--)
+		{
+			int l, r;
+			cin >> l >> r;
+
+			if (l == r) cout << "1\n";
+			else
+			{
+				l--;
+				int ans = 2;
+				for (int ind = blftn[l].size() - 1; ind > -1; ind--) if (blftn[l].size() > ind) if (blftn[l][ind].first < r - 1)
+				{
+					ans += blftn[l][ind].second;
+					l = blftn[l][ind].first;
+				}
+
+				int a = l, b = l + 1;
+				if (blftp[a][0] >= r) cout << ans << "\n";
+				else
+				{
+					if (dep[a] > dep[b])
+					{
+						a = blftp[a][0];
+						swap(a, b);
+						if (a < b) ans++;
+					}
+
+					for (int ind = blftp[b].size() - 1; ind > -1; ind--) if (blftp[b].size() > ind)
+						if (blftp[a][ind] != blftp[b][ind]) if (blftp[b][ind] < r)
+					{
+						ans += 2 << ind;
+						a = blftp[a][ind], b = blftp[b][ind];
+					}
+
+					if (blftp[a][0] < r) ans++;
+					cout << ans << "\n";
+				}
+			}
+		}
+
+		for (int i = 0; i <= n; i++) blftp[i].clear(), chd[i].clear(), blftn[i].clear();
+	}
+}
