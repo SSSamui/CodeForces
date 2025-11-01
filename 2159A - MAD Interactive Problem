@@ -1,0 +1,50 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+ 
+		vector<int> tprnt(1, 1);
+		vector<int> confirm(2 * n + 1, 0);
+		vector<int> confirmed(0);
+ 
+		for (int i = 2; i <= 2 * n; i++)
+		{
+			cout << "? " << tprnt.size() + 1 << ' ' << i;
+			for (int j = 0; j < tprnt.size(); j++) cout << ' ' << tprnt[j];
+			cout << "\n";
+			cout.flush();
+ 
+			int res;
+			cin >> res;
+			if (res == 0) tprnt.push_back(i);
+			else confirmed.push_back(i), confirm[i] = res;
+		}
+ 
+		for (int i = 0; i < n; i++)
+		{
+			cout << "? " << n + 1 << ' ' << tprnt[i];
+			for (int j = 0; j < n; j++) cout << ' ' << confirmed[j];
+			cout << "\n";
+			cout.flush();
+			cin >> confirm[tprnt[i]];
+		}
+ 
+		cout << "!";
+		for (int i = 1; i <= 2 * n; i++) cout << ' ' << confirm[i];
+		cout << "\n";
+		cout.flush();
+	}
+}
