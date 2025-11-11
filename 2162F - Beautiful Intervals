@@ -1,0 +1,86 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+const int MXN = 3000;
+
+vector<int> ans(MXN);
+
+void print(int n)
+{
+	cout << ans[0];
+	for (int i = 1; i < n; i++) cout << ' ' << ans[i];
+	cout << "\n";
+}
+
+void solve()
+{
+	int n, m;
+	cin >> n >> m;
+
+	vector<int> psums(n + 1, 0);
+	vector<bool> start(n, false), end(n, false);
+	for (int i = 0; i < m; i++)
+	{
+		int l, r;
+		cin >> l >> r;
+		l--, r--;
+
+		psums[l]++, psums[r + 1]--;
+		start[l] = true, end[r] = true;
+	}
+
+	for (int i = 1; i <= n; i++) psums[i] += psums[i - 1];
+	
+	for (int i = 0; i < n; i++) if (psums[i] == m)
+	{
+		ans[i] = 0;
+		for (int j = 0; j < i; j++) ans[j] = j + 1;
+		for (int j = i + 1; j < n; j++) ans[j] = j;
+		print(n);
+		return;
+	}
+
+	for (int i = 0; i < n; i++) if (psums[i] == 0)
+	{
+		ans[i] = 0;
+		for (int j = 0; j < i; j++) ans[j] = j + 1;
+		for (int j = i + 1; j < n; j++) ans[j] = j;
+		print(n);
+		return;
+	}
+
+	for (int i = 1; i < n; i++) if (!start[i])
+	{
+		ans[i] = 0, ans[i - 1] = 1;
+		for (int j = 0; j < i - 1; j++) ans[j] = j + 2;
+		for (int j = i + 1; j < n; j++) ans[j] = j;
+		print(n);
+		return;
+	}
+
+	for (int i = 0; i < n - 1; i++) if (!end[i])
+	{
+		ans[i] = 0, ans[i + 1] = 1;
+		for (int j = 0; j < i; j++) ans[j] = j + 2;
+		for (int j = i + 2; j < n; j++) ans[j] = j;
+		print(n);
+		return;
+	}
+
+	ans[0] = 0, ans[n - 1] = 1;
+	for (int i = 1; i < n - 1; i++) ans[i] = i + 1;
+	print(n);
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _ ;
+	cin >> _;
+	while (_--) solve();
+}
