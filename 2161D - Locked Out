@@ -1,0 +1,40 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<vector<int>> inv(n + 2, vector<int>(1, -1));
+		for (int i = 0; i < n; i++)
+		{
+			int a;
+			cin >> a;
+			inv[a].push_back(i);
+		}
+
+		vector<vector<int>> dp = inv;
+		dp[0][0] = 0;
+		for (int i = 1; i < n + 2; i++)
+		{
+			int ind = inv[i - 1].size() - 1, curr = 0;
+			for (int j = inv[i].size() - 1; j > -1; j--)
+			{
+				while (inv[i - 1][ind] > inv[i][j]) curr = max(curr, dp[i - 1][ind--]);
+				dp[i][j] = j + max(curr - ind, dp[i - 1][0]);
+			}
+		}
+
+		cout << n - dp[n + 1][0] << "\n";
+	}
+}
