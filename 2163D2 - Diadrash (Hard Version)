@@ -1,0 +1,57 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+vector<pair<int, int>> chk(0);
+
+int qur(int l, int r)
+{
+	int mid = l + (r - l) / 2;
+	cout << "? " << chk[mid].first << ' ' << chk[mid].second << "\n";
+	cout.flush();
+
+	int q;
+	cin >> q;
+	if (l == r) return q;
+
+	cout << "? 1 " << chk[mid].second << "\n";
+	cout.flush();
+
+	int p;
+	cin >> p;
+	if (p <= q) return max(q, qur(mid + 1, r));
+	if (mid == l) return q;
+	return max(q, qur(l, mid - 1));
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, q;
+		cin >> n >> q;
+		vector<pair<int, int>> rng(q);
+		for (int i = 0; i < q; i++) cin >> rng[i].first >> rng[i].second;
+		sort(rng.begin(), rng.end());
+
+		chk.push_back(rng[0]);
+		for (int i = 1; i < q; i++) if (rng[i].second > chk.back().second)
+		{
+			if (rng[i].first == chk.back().first) chk.pop_back();
+			chk.push_back(rng[i]);
+		}
+
+		int ans = qur(0, chk.size() - 1);
+		cout << "! " << ans << "\n";
+		cout.flush();
+		chk.clear();
+	}
+}
