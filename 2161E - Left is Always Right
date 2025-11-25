@@ -1,0 +1,150 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+using ll = long long;
+
+const int MXN = 1e5;
+const ll MOD = 998244353;
+
+vector<ll> fact(MXN, 1);
+
+ll pw(ll b, ll e)
+{
+	if (e == 0) return 1ll;
+	if (e % 2 == 1) return (pw(b, e - 1) * b) % MOD;
+	ll ans = pw(b, e / 2);
+	return (ans * ans) % MOD;
+}
+
+ll solve()
+{
+	int n, k;
+	cin >> n >> k;
+	string s;
+	cin >> s;
+
+	ll ans = 0;
+	int c0 = 0, c1 = 0;
+	int r0 = 0, r1 = 0;
+	vector<int> modnum(k - 1, 2);
+	for (int i = 0; i <= n - k; i++)
+	{
+		if (s[i] == '0') c0++;
+		else if (s[i] == '1') c1++;
+	}
+
+	for (int i = n - k + 1; i < n; i++)
+	{
+		if (s[i] == '0') modnum[i % (k - 1)] = 0, r0++;
+		else if (s[i] == '1') modnum[i % (k - 1)] = 1, r1++;
+	}
+
+	if (c1 == 0) if (r1 <= k / 2)
+	{
+		if (r0 >= k / 2) ans = (ans + pw(2ll, k - 1 - r0 - r1)) % MOD;
+		else
+		{
+			ll tadd = 1ll;
+			ans++;
+			for (int i = 1; i <= k / 2 - r1; i++)
+			{
+				tadd *= (k - r0 - r1 - i);
+				tadd %= MOD;
+				tadd *= pw(i, MOD - 2);
+				tadd %= MOD;
+				ans = (ans + tadd) % MOD;
+			}
+		}
+	}
+
+	if (c0 == 0) if (r0 <= k / 2)
+	{
+		if (r1 >= k / 2) ans = (ans + pw(2ll, k - 1 - r0 - r1)) % MOD;
+		else
+		{
+			ll tadd = 1ll;
+			ans++;
+			for (int i = 1; i <= k / 2 - r0; i++)
+			{
+				tadd *= (k - r0 - r1 - i);
+				tadd %= MOD;
+				tadd *= pw(i, MOD - 2);
+				tadd %= MOD;
+				ans = (ans + tadd) % MOD;
+			}
+		}
+	}
+
+	ans %= MOD;
+	if (r0 > k / 2) return ans;
+	if (r1 > k / 2) return ans;
+	for (int i = n - k; i > 0; i--)
+	{
+		if (s[i] == '0')
+		{
+			c0--;
+			if (modnum[i % (k - 1)] == 1) return ans;
+			if (modnum[i % (k - 1)] == 2)
+			{
+				r0++, modnum[i % (k - 1)] = 0;
+				if (r0 > k / 2) return ans;
+			}
+		}
+
+		else if (s[i] == '1')
+		{
+			c1--;
+			if (modnum[i % (k - 1)] == 0) return ans;
+			if (modnum[i % (k - 1)] == 2)
+			{
+				r1++, modnum[i % (k - 1)] = 1;
+				if (r1 > k / 2) return ans;
+			}
+		}
+
+		if (c1 == 0) if (modnum[i % (k - 1)] != 0)
+		{
+			bool eq2 = (modnum[i % (k - 1)] == 2);
+			if (eq2) r1++;
+			if (r1 <= k / 2)
+			{
+				ll tadd = (fact[k - 1 - r0 - r1] * pw(fact[k / 2 - r0], MOD - 2)) % MOD;
+				tadd = (tadd * pw(fact[k / 2 - r1], MOD - 2)) % MOD;
+				ans = (ans + tadd) % MOD;
+			}
+
+			if (eq2) r1--;
+		}
+
+		if (c0 == 0) if (modnum[i % (k - 1)] != 1)
+		{
+			bool eq2 = (modnum[i % (k - 1)] == 2);
+			if (eq2) r0++;
+			if (r0 <= k / 2)
+			{
+				ll tadd = (fact[k - 1 - r0 - r1] * pw(fact[k / 2 - r0], MOD - 2)) % MOD;
+				tadd = (tadd * pw(fact[k / 2 - r1], MOD - 2)) % MOD;
+				ans = (ans + tadd) % MOD;
+			}
+
+			if (eq2) r0--;
+		}
+	}
+
+	return ans;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	for (int i = 1; i < MXN; i++) fact[i] = (fact[i - 1] * i) % MOD;
+
+	int _;
+	cin >> _;
+	while (_--) cout << solve() << "\n";
+}
