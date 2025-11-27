@@ -1,0 +1,45 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> a(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+		vector<int> inv(n + 1);
+		for (int i = 0; i < n; i++) inv[a[i]] = i;
+
+		for (int i = 1; i <= n; i++)
+		{
+			int right = inv[i], curr = inv[i];
+			for (int j = i + 1; j <= n; j++)
+			{
+				right = min(right, inv[j]);
+				if (j % 2 == i % 2) if (right == inv[j]) curr = inv[j];
+			}
+
+			int mx = a[curr];
+			for (int j = mx; j > i; j--)
+			{
+				int ind = inv[j - 1];
+				a[ind]++, inv[j] = ind;
+			}
+
+			a[curr] = i, inv[i] = curr;
+		}
+
+		for (int i = 0; i < n; i++) cout << a[i] << ' ';
+		cout << "\n";
+	}
+}
