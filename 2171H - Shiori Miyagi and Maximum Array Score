@@ -1,0 +1,71 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+const int MXN = 2e5 + 1;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	vector<vector<pair<ll, int>>> mod(MXN, vector<pair<ll, int>>(0));
+	mod[2].push_back({ 2, 1 });
+	for (int i = 4; i < MXN; i *= 2) mod[2].push_back({ i, mod[2].back().second + 1 });
+	for (int i = 3; i < MXN; i++)
+	{
+		int ind = 0, add = 0;
+		ll base = 1;
+		while (ind < mod[i - 1].size() - 1)
+		{
+			ll tmult = mod[i - 1][ind].first / base + 1;
+			ll tins = tmult * base;
+			if (tins > mod[i - 1][ind + 1].first)
+			{
+				int check = mod[i - 1][ind + 1].second - mod[i - 1][ind].second;
+				while (check--) if (add > 0) add--, base /= i;
+				ind++;
+			}
+ 
+			else
+			{
+				while (tmult % i == 0) tmult /= i, add++, base *= i;
+				mod[i].push_back({ tins, mod[i - 1][ind].second + add }), add++, base *= i;
+			}
+		}
+ 
+		bool cont = true;
+		while (cont)
+		{
+			ll tmult = mod[i - 1][ind].first / base + 1;
+			ll tins = tmult * base;
+			if (tins >= MXN) cont = false;
+			else
+			{
+				while (tmult % i == 0) tmult /= i, add++, base *= i;
+				mod[i].push_back({ tins, mod[i - 1][ind].second + add }), add++, base *= i;
+			}
+		}
+	}
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, m;
+		cin >> n >> m;
+ 
+		int l = 0, r = mod[n].size() - 1;
+		while (l < r)
+		{
+			int mid = l + (r - l + 1) / 2;
+			if (mod[n][mid].first > m) r = mid - 1;
+			else l = mid;
+		}
+ 
+		cout << mod[n][l].second << "\n";
+	}
+}
