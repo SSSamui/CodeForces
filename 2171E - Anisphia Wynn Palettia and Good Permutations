@@ -1,0 +1,54 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		
+		vector<int> ans(0);
+		int i = 0, j = 0, k = 0;
+		while (j * 4 + 4 <= n)
+		{
+			ans.push_back(i * 3 + 1 + (i % 2));
+			i++;
+
+			ans.push_back(j * 4 + 2);
+			ans.push_back(j * 4 + 4);
+			j++;
+		}
+
+		while (k * 12 + 9 <= n)
+		{
+			ans.push_back(i * 3 + 1 + (i % 2));
+			i++;
+
+			ans.push_back(k * 12 + 3);
+			ans.push_back(k * 12 + 9);
+			k++;
+		}
+
+		while (i * 3 + 1 + (i % 2) <= n)
+		{
+			ans.push_back(i * 3 + 1 + (i % 2));
+			i++;
+		}
+
+		if (j * 4 + 2 <= n) ans.push_back(j * 4 + 2);
+		if (k * 12 + 3 <= n) ans.push_back(k * 12 + 3);
+
+		cout << ans[0];
+		for (int i = 1; i < n; i++) cout << ' ' << ans[i];
+		cout << "\n";
+	}
+}
