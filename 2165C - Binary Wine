@@ -1,0 +1,84 @@
+#include <iostream>
+#include <cstdio>
+#include <set>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+
+multiset<ll> org, added, removed;
+
+ll qry(ll c)
+{
+	ll ans = 0;
+	for (int i = 29; i > -1; i--)
+	{
+		ll bit = 1ll << i;
+		auto it = org.lower_bound(bit);
+		if (c < bit) { if (it != org.end()) return ans; }
+		else if (it == org.end())
+		{
+			it--;
+			ans += (bit - *it);
+			removed.insert(*it), added.insert(0ll);
+			org.erase(it);
+			org.insert(0ll);
+			c -= bit;
+		}
+
+		else
+		{
+			it++;
+			if (it != org.end()) return ans;
+			else
+			{
+				it--;
+				removed.insert(*it), added.insert(*it - bit);
+				org.insert(*it - bit);
+				it = org.end();
+				it--;
+				org.erase(it);
+				c -= bit;
+			}
+		}
+	}
+
+	return ans;
+}
+
+void postqry()
+{
+	for (ll e : removed) org.insert(e);
+	for (ll e : added) org.erase(org.find(e));
+	added.clear(), removed.clear();
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, __;
+		cin >> n >> __;
+		while (n--)
+		{
+			ll a;
+			cin >> a;
+			org.insert(a);
+		}
+
+		while (__--)
+		{
+			ll c;
+			cin >> c;
+			cout << qry(c) << "\n";
+			postqry();
+		}
+
+		org.clear();
+	}
+}
