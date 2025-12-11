@@ -1,0 +1,48 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <set>
+#include <algorithm>
+using namespace std;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<set<int>> left(2 * n + 1), right(2 * n + 1);
+		for (int i = 0; i < n; i++)
+		{
+			int a;
+			cin >> a;
+			left[a].insert(-i), right[a].insert(i);
+		}
+ 
+		int ans = n;
+		for (int ind = 2 * n; ind > 0; ind--)
+		{
+			for (int e : left[ind])
+			{
+				auto it = right[ind - 1].lower_bound(-e);
+				if (it != right[ind - 1].end()) ans--, right[ind - 1].erase(it);
+			}
+ 
+			for (int e : right[ind])
+			{
+				auto it = left[ind - 1].lower_bound(-e);
+				if (it != left[ind - 1].end()) ans--, left[ind - 1].erase(it);
+			}
+ 
+			left.pop_back(), right.pop_back();
+		}
+ 
+		cout << ans << "\n";
+	}
+}
