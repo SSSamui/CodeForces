@@ -1,0 +1,127 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+using namespace std;
+using ll = long long;
+ 
+struct dsu
+{
+	int n;
+	vector<int> p;
+	vector<map<ll, int>> edgcnt;
+	vector<bool> oddedg;
+ 
+	dsu(int N)
+	{
+		n = N;
+		p = vector<int>(N + 1);
+		for (int i = 1; i <= N; i++) p[i] = i;
+		edgcnt = vector<map<ll, int>>(N + 1);
+		oddedg = vector<bool>(N + 1);
+	}
+ 
+	int rt(int node)
+	{
+		if (p[node] == node) return node;
+		p[node] = rt(p[node]);
+		return p[node];
+	}
+ 
+	void join(int a, int b, ll w)
+	{
+		a = rt(a), b = rt(b);
+		if (a == b)
+		{
+			bool cont = true;
+			int cnt = 0;
+			while (cont)
+			{
+				auto it = edgcnt[a].end();
+				if (it == edgcnt[a].begin()) cont = false;
+				else
+				{
+					it--;
+					if (it->first < w) cont = false;
+					else
+					{
+						cnt += it->second;
+						edgcnt[a].erase(it);
+					}
+				}
+			}
+ 
+			if (cnt > 0) edgcnt[a][w] = cnt;
+		}
+ 
+		else
+		{
+			if (edgcnt[a].size() < edgcnt[b].size()) swap(a, b);
+			p[b] = a;
+			for (auto it : edgcnt[b]) edgcnt[a][it.first] += it.second;
+			edgcnt[b].clear();
+ 
+			bool cont = true;
+			int cnt = 0;
+			while (cont)
+			{
+				auto it = edgcnt[a].end();
+				if (it == edgcnt[a].begin()) cont = false;
+				else
+				{
+					it--;
+					if (it->first < w) cont = false;
+					else
+					{
+						cnt += it->second;
+						edgcnt[a].erase(it);
+					}
+				}
+			}
+ 
+			if (cnt > 0) edgcnt[a][w] = cnt;
+			if (oddedg[b])
+			{
+				oddedg[b] = false, oddedg[a] = !oddedg[a];
+				if (!oddedg[a]) edgcnt[a][w]++;
+			}
+		}
+	}
+};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, m;
+		cin >> n >> m;
+ 
+		ll ans = 0;
+		dsu cdsu = dsu(n);
+		vector<pair<pair<int, int>, ll>> edg(m);
+		vector<int> deg(n + 1, 0);
+		for (int i = 0; i < m; i++)
+		{
+			int u, v;
+			ll w;
+			cin >> u >> v >> w;
+ 
+			edg[i].first.first = u, edg[i].first.second = v, edg[i].second = w;
+			deg[u]++, deg[v]++;
+			ans += w;
+		}
+ 
+		for (int i = 1; i <= n; i++) cdsu.oddedg[i] = (deg[i] % 2 == 1);
+		for (int i = 0; i < m; i++) cdsu.join(edg[i].first.first, edg[i].first.second, edg[i].second);
+ 
+		int root = cdsu.rt(1);
+		for (auto it : cdsu.edgcnt[root]) ans += it.first * it.second;
+		cout << ans << "\n";
+	}
+}
