@@ -1,0 +1,41 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<ll> a(0);
+		while (n--)
+		{
+			ll b;
+			cin >> b;
+			while (!a.empty() && (a.back() >= b)) a.pop_back();
+			a.push_back(b);
+		}
+ 
+		n = a.size();
+		vector<int> ind(129, 0);
+		vector<int> dp(n + 1, 129);
+		dp[0] = 0;
+		for (int i = 0; i < n; i++) for (int cost = 1; cost <= 128; cost++)
+			while ((ind[cost] < n) && ((a[ind[cost]] + a[i] - 1) / a[i] <= cost))
+			{
+				ind[cost]++;
+				dp[ind[cost]] = min(dp[ind[cost]], dp[i] + cost);
+			}
+ 
+		cout << dp[n] << "\n";
+	}
+}
