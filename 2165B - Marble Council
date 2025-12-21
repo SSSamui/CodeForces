@@ -1,0 +1,59 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+ 
+const ll MOD = 998244353;
+ 
+ll pw(ll b, ll e)
+{
+	if (e == 0) return 1;
+	if (e % 2 == 1) return (pw(b, e - 1) * b) % MOD;
+	ll ans = pw(b, e / 2);
+	return (ans * ans) % MOD;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> cnt(n + 1, 0);
+		for (int i = 0; i < n; i++)
+		{
+			int a;
+			cin >> a;
+			cnt[a]++;
+		}
+ 
+		sort(cnt.begin(), cnt.end());
+		reverse(cnt.begin(), cnt.end());
+		while (cnt.back() == 0) cnt.pop_back();
+ 
+		ll ans = 1;
+		for (int i = 0; i < cnt.size(); i++) ans = (ans * cnt[i]) % MOD;
+		vector<ll> dp(n + 1, 0);
+		dp[0] = 1;
+ 
+		int curr = n;
+		ll prod = ans;
+		while (!cnt.empty())
+		{
+			curr -= cnt.back(), prod = (prod * pw(cnt.back(), MOD - 2)) % MOD;
+			for (int i = 0; i <= n; i++) if (i + curr >= cnt.back()) ans = (ans + prod * dp[i]) % MOD;
+			for (int i = n; i >= cnt.back(); i--) dp[i] = (dp[i] + dp[i - cnt.back()] * cnt.back()) % MOD;
+			cnt.pop_back();
+		}
+ 
+		cout << ans << "\n";
+	}
+}
