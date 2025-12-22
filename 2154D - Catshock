@@ -1,0 +1,81 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <set>
+using namespace std;
+ 
+struct tree
+{
+	int n, rem;
+	vector<set<int>> edg, leaf;
+	vector<int> dep;
+ 
+	tree(int N)
+	{
+		n = N, rem = N;
+		edg = vector<set<int>>(N + 1), dep = vector<int>(N + 1, 0);
+		leaf = vector<set<int>>(2);
+	}
+ 
+	void dfs(int node = 1, int p = 0)
+	{
+		for (int nxt : edg[node]) if (nxt != p)
+		{
+			dep[nxt] = dep[node] + 1;
+			dfs(nxt, node);
+		}
+	}
+};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		tree ctree(n);
+		for (int i = 1; i < n; i++)
+		{
+			int u, v;
+			cin >> u >> v;
+			ctree.edg[u].insert(v), ctree.edg[v].insert(u);
+		}
+ 
+		ctree.dfs();
+		int moved = 0;
+		vector<pair<int, int>> ops(0);
+		for (int i = 1; i <= n; i++) if (ctree.edg[i].size() == 1) ctree.leaf[ctree.dep[i] % 2].insert(i);
+ 
+		while (ctree.rem > 1)
+		{
+			ops.push_back({ 1, 0 }), moved = 1 - moved;
+			if (!ctree.leaf[1 - moved].empty())
+			{
+				int leaf = *ctree.leaf[1 - moved].begin();
+				if (leaf < n)
+				{
+					ops.push_back({ 2, leaf });
+					int adj = *ctree.edg[leaf].begin();
+					ctree.edg[adj].erase(leaf);
+					if (ctree.edg[adj].size() == 1) ctree.leaf[ctree.dep[adj] % 2].insert(adj);
+					ctree.edg[leaf].clear();
+					ctree.rem--;
+					ctree.leaf[1 - moved].erase(leaf);
+				}
+			}
+		}
+ 
+		cout << ops.size() << "\n";
+		for (int i = 0; i < ops.size(); i++)
+		{
+			if (ops[i].first == 1) cout << "1\n";
+			else cout << "2 " << ops[i].second << "\n";
+		}
+	}
+}
