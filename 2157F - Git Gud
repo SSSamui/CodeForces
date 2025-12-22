@@ -1,0 +1,25 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n;
+	cin >> n;
+	int k = 2;
+	if (n == 250000) k = 63;
+	n = k * k * k;
+
+	vector<pair<int, int>> ops(0);
+	for (int mod = 1; mod < k; mod++) for (int q = n - k; q >= 0; q -= k) ops.push_back({ q + mod, 1 });
+	for (int mod = k; mod < k * k; mod += k) for (int q = n - k * k; q >= 0; q -= k * k) ops.push_back({ q + mod, k });
+	for (int mod = k * k; mod < n; mod += k * k) ops.push_back({ mod, k * k });
+
+	cout << ops.size() << "\n";
+	for (int i = 0; i < ops.size(); i++) cout << ops[i].first << ' ' << ops[i].second << "\n";
+}
