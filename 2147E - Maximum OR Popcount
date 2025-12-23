@@ -1,0 +1,65 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+const int BITS = 31;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, __;
+		cin >> n >> __;
+		vector<int> a(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+ 
+		vector<int> count(BITS, 0);
+		for (int i = 0; i < BITS; i++) for (int j = 0; j < n; j++) if (a[j] & (1 << i)) count[i]++;
+		
+		vector<int> ans(BITS + 1, 0);
+		int currbit = 0;
+		for (int i = 0; i < BITS; i++) if (count[i]) currbit++;
+		for (int i = 0; i < BITS; i++) if (!count[i])
+		{
+			currbit++;
+			vector<int> a2 = a, count2 = count;
+			int curr = 0;
+			for (int j = i; j > -1; j--) if (!count2[j])
+			{
+				int tadd = 2e9, ind = -1;
+				for (int k = 0; k < n; k++)
+				{
+					int kadd = (1 << j) - (a2[k] % (1 << j));
+					if (kadd < tadd) tadd = kadd, ind = k;
+				}
+ 
+				for (int k = 0; k < j; k++) if (a2[ind] & (1 << k)) count2[k]--;
+				curr += tadd, a2[ind] += tadd;
+			}
+ 
+			ans[currbit] = curr;
+		}
+ 
+		while (__--)
+		{
+			int b;
+			cin >> b;
+			int l = 0, r = BITS;
+			while (l < r)
+			{
+				int mid = l + (r - l + 1) / 2;
+				if (ans[mid] > b) r = mid - 1;
+				else l = mid;
+			}
+ 
+			cout << l << "\n";
+		}
+	}
+}
