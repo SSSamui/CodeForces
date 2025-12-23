@@ -1,0 +1,77 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+const int MXN = 1e7 + 1;
+ 
+vector<bool> prime(MXN, true);
+ 
+int vp(int n, int p)
+{
+	int ans = 0;
+	while (n >= p)
+	{
+		n /= p;
+		ans += n;
+	}
+ 
+	return ans;
+}
+ 
+int main()
+{
+	prime[1] = false;
+	vector<int> smallp(0);
+	for (int i = 2; i * i < MXN; i++) if (prime[i])
+	{
+		smallp.push_back(i);
+		for (int j = i * i; j < MXN; j += i) prime[j] = false;
+	}
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, m;
+		cin >> n >> m;
+		if (prime[n]) cout << "0\n";
+		else
+		{
+			int q = n;
+			while (!prime[q]) q--;
+ 
+			vector<int> bigp(0);
+			for (int f = 1; f * f <= n; f++)
+			{
+				int p = n / f;
+				while (!prime[p]) p--;
+				bigp.push_back(p);
+			}
+ 
+			ll ans = 0;
+			for (int x = q; x < n; x++)
+			{
+				int curr = 1e9;
+				for (int p : bigp)
+				{
+					int vx = vp(x, p), vn = vp(n, p);
+					if (vx < vn) curr = min(curr, vx);
+				}
+ 
+				for (int p : smallp)
+				{
+					int vx = vp(x, p), vn = vp(n, p);
+					if (vx < vn) for (int e = 1, b = m / p; b > 0; e++, b /= p)
+						if (vx / e < vn / e) curr = min(curr, vx / e);
+				}
+ 
+				ans += (1ll * curr);
+			}
+ 
+			cout << ans << "\n";
+		}
+	}
+}
