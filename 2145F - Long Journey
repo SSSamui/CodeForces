@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+int gcd(int a, int b)
+{
+	if (b == 0) return a;
+	return gcd(b, a % b);
+}
+ 
+int main()
+{
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		ll m;
+		cin >> n >> m;
+		vector<int> mods(n), ress(n);
+		for (int i = 0; i < n; i++) cin >> mods[i];
+		for (int i = 0; i < n; i++) cin >> ress[i];
+ 
+		int mod = 1, res = 0;
+		for (int i = 0; (mod > 0) && (i < n); i++)
+		{
+			int cgcd = gcd(mods[i], mod);
+			if (res % cgcd != ress[i] % cgcd) mod = -1, res = -1;
+			else
+			{
+				while (res % mods[i] != ress[i]) res += mod;
+				mod *= (mods[i] / cgcd);
+			}
+		}
+ 
+		if (res == 0) res = mod;
+		if ((res >= 0) && (res <= m)) cout << "-1\n";
+		else if (m < 2520)
+		{
+			ll ans = 0, curr = 0;
+			while (curr < m)
+			{
+				curr++;
+				if (curr % mods[ans % n] == ress[ans % n]) curr--;
+				ans++;
+			}
+ 
+			cout << ans << "\n";
+		}
+ 
+		else
+		{
+			vector<vector<ll>> blft(n, vector<ll>(1, 0));
+			for (int i = 0; i < n; i++)
+			{
+				int curr = 0;
+				while (curr < 2520)
+				{
+					blft[i][0]++, curr++;
+					int movecurr = (i + blft[i][0] - 1) % n;
+					if (curr % mods[movecurr] == ress[movecurr]) curr--;
+				}
+			}
+ 
+			for (int i = 0; i < 28; i++) for (int j = 0; j < n; j++)
+				blft[j].push_back(blft[j][i] + blft[(j + blft[j][i]) % n][i]);
+ 
+			ll ans = 0;
+			for (int i = 28; i >= 0; i--)
+			{
+				ll minus = 2520;
+				minus = minus << i;
+				if (m >= minus) m -= minus, ans += blft[ans % n][i];
+			}
+ 
+			ll curr = 0;
+			while (curr < m)
+			{
+				curr++;
+				if (curr % mods[ans % n] == ress[ans % n]) curr--;
+				ans++;
+			}
+ 
+			cout << ans << "\n";
+		}
+	}
+}
