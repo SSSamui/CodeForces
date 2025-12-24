@@ -1,0 +1,105 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+struct node
+{
+	int val = 0, lz = 0;
+};
+ 
+struct tree
+{
+	int sz = 1;
+	vector<node> seg;
+ 
+	tree(int N)
+	{
+		while (sz <= N) sz *= 2;
+		seg = vector<node>(2 * sz);
+	}
+ 
+	void pushup(int node)
+	{
+		int lc = node * 2, rc = node * 2 + 1;
+		seg[node].val = max(seg[lc].val, seg[rc].val);
+	}
+ 
+	void pushdown(int node)
+	{
+		int lc = node * 2, rc = node * 2 + 1;
+		int lz = seg[node].lz;
+		seg[node].lz = 0;
+ 
+		seg[lc].val += lz, seg[rc].val += lz;
+		seg[lc].lz += lz, seg[rc].lz += lz;
+	}
+ 
+	void rupd(int node, int l, int r, int a, int b)
+	{
+		if ((l > b) || (r < a)) return;
+		if ((a <= l) && (r <= b))
+		{
+			seg[node].val++, seg[node].lz++;
+			return;
+		}
+ 
+		int mid = l + (r - l) / 2;
+		int lc = node * 2, rc = node * 2 + 1;
+		pushdown(node);
+		rupd(lc, l, mid, a, b), rupd(rc, mid + 1, r, a, b);
+		pushup(node);
+	}
+ 
+	void deact(int node, int l, int r, int d)
+	{
+		if (l == r)
+		{
+			seg[node].lz = 0, seg[node].val = 0;
+			return;
+		}
+ 
+		int mid = l + (r - l) / 2;
+		int lc = node * 2, rc = node * 2 + 1;
+		pushdown(node);
+		if (d > mid) deact(rc, mid + 1, r, d);
+		else deact(lc, l, mid, d);
+		pushup(node);
+	}
+ 
+	int num(int node, int l, int r, int d)
+	{
+		if (l == r) return seg[node].val;
+		int mid = l + (r - l) / 2;
+		int lc = node * 2, rc = node * 2 + 1;
+		pushdown(node);
+		if (d > mid) return num(rc, mid + 1, r, d);
+		return num(lc, l, mid, d);
+	}
+};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		tree seg(n);
+		for (int i = 0; i < n; i++)
+		{
+			int a;
+			cin >> a;
+			seg.rupd(1, 0, n, 0, a - 1);
+			seg.deact(1, 0, n, a);
+			cout << seg.seg[1].val << ' ';
+		}
+ 
+		cout << "\n";
+	}
+}
