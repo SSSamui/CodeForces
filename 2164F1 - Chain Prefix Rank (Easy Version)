@@ -1,0 +1,113 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <set>
+#include <queue>
+using namespace std;
+using ll = long long;
+ 
+const ll MOD = 998244353;
+ 
+ll pw(ll b, ll e)
+{
+	if (e == 0) return 1;
+	if (e % 2 == 1) return (pw(b, e - 1) * b) % MOD;
+	ll ans = pw(b, e / 2);
+	return (ans * ans) % MOD;
+}
+ 
+struct tree
+{
+	int n;
+	vector<ll> fact;
+	vector<set<int>> next, last;
+	vector<vector<int>> children;
+	vector<int> a, currlist;
+	vector<vector<ll>> dp;
+	vector<vector<int>> val;
+ 
+	tree(int N, vector<int> f, vector<int> A)
+	{
+		a = A, n = N;
+ 
+		fact = vector<ll>(N + 1, 1);
+		for (int i = 2; i <= N; i++) fact[i] = (fact[i - 1] * i) % MOD;
+ 
+		next = vector<set<int>>(N + 1), last = vector<set<int>>(N + 2);
+		for (int i = 1; i <= n; i++) next[i].insert(n + 1), last[i].insert(0);
+ 
+		children = vector<vector<int>>(N + 1, vector<int>(0));
+		for (int i = 2; i <= N; i++) children[f[i]].push_back(i);
+ 
+		currlist = vector<int>(1, 1);
+		dp = vector<vector<ll>>(n + 2, vector<ll>(n + 2, 1));
+		val = vector<vector<int>>(n + 2, vector<int>(n + 2, 0));
+	}
+ 
+	void graphdfs(int node = 1)
+	{
+		for (int chd : children[node])
+		{
+			if (a[chd] == currlist.size())
+			{
+				next[currlist.back()].insert(chd), last[chd].insert(currlist.back());
+				currlist.push_back(chd);
+			}
+ 
+			else if (a[chd] == 0)
+			{
+				last[currlist[0]].insert(chd), next[chd].insert(currlist[0]);
+				currlist.insert(currlist.begin(), chd);
+			}
+ 
+			else
+			{
+				next[currlist[a[chd] - 1]].insert(chd), last[currlist[a[chd]]].insert(chd);
+				next[chd].insert(currlist[a[chd]]), last[chd].insert(currlist[a[chd] - 1]);
+				currlist.insert(currlist.begin() + a[chd], chd);
+			}
+ 
+			graphdfs(chd);
+			currlist.erase(currlist.begin() + a[chd]);
+		}
+	}
+ 
+	void remnde(int node)
+	{
+		int clst = *last[node].rbegin(), cnxt = *next[node].begin();
+		next[clst].erase(node), last[cnxt].erase(node);
+ 
+		ll dp1 = dp[clst][cnxt], dp2 = dp[clst][node], dp3 = dp[node][cnxt];
+		int val1 = val[clst][cnxt], val2 = val[clst][node], val3 = val[node][cnxt];
+ 
+		dp[clst][cnxt] = (((dp1 * dp2) % MOD) * dp3) % MOD;
+		dp[clst][cnxt] = (dp[clst][cnxt] * fact[val1 + val2 + val3 + 1]) % MOD;
+		dp[clst][cnxt] = (dp[clst][cnxt] * pw(fact[val1], MOD - 2)) % MOD;
+		dp[clst][cnxt] = (dp[clst][cnxt] * pw(fact[val2 + val3 + 1], MOD - 2)) % MOD;
+		val[clst][cnxt] += val2 + val3 + 1;
+	}
+};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> f(n + 1), a(n + 1);
+		for (int i = 2; i <= n; i++) cin >> f[i];
+		for (int i = 1; i <= n; i++) cin >> a[i];
+ 
+		tree ctree(n, f, a);
+		ctree.graphdfs();
+ 
+		for (int i = n; i > 0; i--) ctree.remnde(i);
+		cout << ctree.dp[0][n + 1] << "\n";
+	}
+}
