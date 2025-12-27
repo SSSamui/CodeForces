@@ -1,0 +1,141 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+struct graph
+{
+	int n, m, sz;
+	vector<int> rt, dep, minstarttime, maxstarttime, leaforder;
+	vector<vector<int>> blft, chd;
+ 
+	graph(int N, int M)
+	{
+		n = N, m = M;
+		sz = 1;
+		while (sz <= n) sz *= 2;
+		leaforder = vector<int>(0);
+		minstarttime = vector<int>(2 * sz, n), maxstarttime = vector<int>(2 * sz, -1);
+		rt = vector<int>(n + m + 1, 0), dep = vector<int>(n + m + 1, 0);
+		blft = vector<vector<int>>(n + m + 1, vector<int>(0)), chd = vector<vector<int>>(n + m + 1, vector<int>(0));
+		for (int i = 1; i <= n + m; i++) rt[i] = i;
+	}
+ 
+	int root(int node)
+	{
+		if (rt[node] == node) return node;
+		rt[node] = root(rt[node]);
+		return rt[node];
+	}
+ 
+	void join(int u, int v, int e)
+	{
+		e += n;
+		u = root(u), v = root(v);
+		if (u == v) return;
+		chd[e].push_back(u), chd[e].push_back(v);
+		blft[u].push_back(e), blft[v].push_back(e);
+		rt[u] = e, rt[v] = e;
+	}
+ 
+	void genblft()
+	{
+		for (int i = n + m; i > 0; i--) if (!blft[i].empty())
+		{
+			int ind = 0;
+			while (blft[blft[i][ind]].size() > ind)
+			{
+				blft[i].push_back(blft[blft[i][ind]][ind]);
+				ind++;
+			}
+		}
+	}
+ 
+	void depdfs(int node)
+	{
+		if (node <= n)
+		{
+			int ind = node + sz;
+			minstarttime[ind] = leaforder.size(), maxstarttime[ind] = leaforder.size();
+			leaforder.push_back(node);
+			while (ind > 1)
+			{
+				ind /= 2;
+				minstarttime[ind] = min(minstarttime[2 * ind], minstarttime[2 * ind + 1]);
+				maxstarttime[ind] = max(maxstarttime[2 * ind], maxstarttime[2 * ind + 1]);
+			}
+		}
+ 
+		for (int nxt : chd[node])
+		{
+			dep[nxt] = dep[node] + 1;
+			depdfs(nxt);
+		}
+	}
+ 
+	int lca(int u, int v)
+	{
+		if (u == v) return 0;
+		if (dep[u] > dep[v]) swap(u, v);
+		for (int ind = blft[v].size() - 1; ind > -1; ind--) if (blft[v].size() > ind)
+			if (dep[blft[v][ind]] >= dep[u]) v = blft[v][ind];
+ 
+		for (int ind = blft[u].size() - 1; ind > -1; ind--) if (blft[u].size() > ind)
+			if (blft[u][ind] != blft[v][ind]) u = blft[u][ind], v = blft[v][ind];
+		return blft[u][0] - n;
+	}
+ 
+	int query(int l, int r)
+	{
+		if (l == r) return 0;
+		int minind = n, maxind = -1;
+		l += sz, r += sz;
+		while (l <= r)
+		{
+			if (l % 2 == 1)
+			{
+				minind = min(minind, minstarttime[l]), maxind = max(maxind, maxstarttime[l]);
+				l++;
+			}
+ 
+			if (r % 2 == 0)
+			{
+				minind = min(minind, minstarttime[r]), maxind = max(maxind, maxstarttime[r]);
+				r--;
+			}
+ 
+			l /= 2, r /= 2;
+		}
+ 
+		l = leaforder[minind], r = leaforder[maxind];
+		return lca(l, r);
+	}
+};
+ 
+int main()
+{
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, m, __;
+		cin >> n >> m >> __;
+		graph currgraph(n, m);
+		for (int i = 1; i <= m; i++)
+		{
+			int u, v;
+			cin >> u >> v;
+			currgraph.join(u, v, i);
+		}
+ 
+		currgraph.depdfs(currgraph.root(1));
+		currgraph.genblft();
+		while (__--)
+		{
+			int l, r;
+			cin >> l >> r;
+			cout << currgraph.query(l, r) << ' ';
+		}
+	}
+}
