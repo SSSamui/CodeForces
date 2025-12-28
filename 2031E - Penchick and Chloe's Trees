@@ -1,0 +1,68 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+ 
+struct tree
+{
+	int n;
+	vector<vector<int>> chd;
+	vector<int> dep;
+ 
+	tree(int N, vector<int> p)
+	{
+		n = N;
+		chd = vector<vector<int>>(n + 1, vector<int>(0)), dep = vector<int>(n + 1, 0);
+		for (int i = 2; i <= n; i++) chd[p[i]].push_back(i);
+	}
+ 
+	void dfs(int node = 1)
+	{
+		vector<int> deps(0);
+		for (int nxt : chd[node])
+		{
+			dfs(nxt);
+			deps.push_back(dep[nxt]);
+		}
+ 
+ 
+		sort(deps.begin(), deps.end());
+		vector<int> fdeps(0);
+		while (!deps.empty())
+		{
+			int tadd = deps.back();
+			deps.pop_back();
+			while (!fdeps.empty() && (fdeps.back() == tadd)) fdeps.pop_back(), tadd++;
+			fdeps.push_back(tadd);
+		}
+ 
+		if (fdeps.size() > 1) dep[node] = fdeps[0] + 1;
+		else if (fdeps.size() > 0)
+		{
+			if (chd[node].size() == 1) dep[node] = fdeps[0] + 1;
+			else dep[node] = fdeps[0];
+		}
+	}
+};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> p(n + 1);
+		for (int i = 2; i <= n; i++) cin >> p[i];
+ 
+		tree ctree(n, p);
+		ctree.dfs();
+		cout << ctree.dep[1] << "\n";
+	}
+}
