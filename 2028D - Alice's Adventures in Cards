@@ -1,0 +1,54 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <set>
+#include <algorithm>
+using namespace std;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> q(n + 1), k(n + 1), j(n + 1);
+		for (int i = 1; i <= n; i++) cin >> q[i];
+		for (int i = 1; i <= n; i++) cin >> k[i];
+		for (int i = 1; i <= n; i++) cin >> j[i];
+ 
+		set<pair<int, int>> qset, kset, jset;
+		vector<pair<int, char>> p(n + 1, { -1, 'n' });
+ 
+		qset.insert({ -q[n], n }), kset.insert({ -k[n], n }), jset.insert({ -j[n], n });
+		for (int i = n - 1; i > 0; i--)
+		{
+			auto qit = qset.upper_bound({ -q[i], i }), kit = kset.upper_bound({ -k[i], i }), jit = jset.upper_bound({ -j[i], i });
+			if (qit != qset.end()) p[i] = { (*qit).second, 'q' };
+			else if (kit != kset.end()) p[i] = { (*kit).second, 'k' };
+			else if (jit != jset.end()) p[i] = { (*jit).second, 'j' };
+			if (p[i].first != -1) qset.insert({ -q[i], i }), kset.insert({ -k[i], i }), jset.insert({ -j[i], i });
+		}
+ 
+		if (p[1].first == -1) cout << "NO\n";
+		else
+		{
+			cout << "YES\n";
+			int curr = 1;
+			vector<pair<char, int>> ops(0);
+			while (curr < n)
+			{
+				ops.push_back({ p[curr].second, p[curr].first });
+				curr = p[curr].first;
+			}
+ 
+			cout << ops.size() << "\n";
+			for (int i = 0; i < ops.size(); i++) cout << ops[i].first << ' ' << ops[i].second << "\n";
+		}
+	}
+}
