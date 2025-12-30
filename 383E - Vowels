@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+using ll = long long;
+ 
+const int sz = 1 << 24;
+const int let = 24;
+const int maxlen = 3;
+ 
+int dp[sz][maxlen]{};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n;
+	cin >> n;
+	for (int _ = 0; _ < n; _++)
+	{
+		string s;
+		cin >> s;
+		int msk = 0, bits = 0;
+		for (int i = 0; i < maxlen; i++)
+		{
+			int bit = s[i] - 'a';
+			if (~msk & (1 << bit)) msk += (1 << bit), bits++;
+		}
+ 
+		dp[msk][bits - 1]++;
+	}
+ 
+	ll ans = 1ll * n * n;
+	for (int msk = 1; msk < sz; msk++)
+	{
+		int countbits = 0;
+		for (int bit = 0; bit < let; bit++) if (msk & (1 << bit))
+		{
+			countbits++;
+			for (int len = 0; len < maxlen; len++) dp[msk][len] += dp[msk - (1 << bit)][len];
+		}
+ 
+		ll txor = 0;
+		if (countbits <= maxlen) txor = dp[msk][countbits - 1];
+		for (int len = 0; (len < maxlen) && (len < countbits - 1); len++)
+		{
+			dp[msk][len] /= (countbits - len - 1);
+			txor += dp[msk][len];
+		}
+ 
+		txor = 1ll * (n - txor);
+		txor *= txor;
+		ans ^= txor;
+	}
+ 
+	cout << ans;
+}
