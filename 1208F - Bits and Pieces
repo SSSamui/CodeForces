@@ -1,0 +1,51 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+const int sz = 1 << 21;
+const int bits = 21;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n;
+	cin >> n;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+ 
+	vector<pair<int, int>> maxind(sz, { -1, -1 });
+	for (int i = 0; i < n; i++)
+	{
+		maxind[a[i]].second = maxind[a[i]].first;
+		maxind[a[i]].first = i;
+	}
+ 
+	for (int i = sz - 1; i > -1; i--) for (int j = 0; j < bits; j++) if (~i & (1 << j))
+	{
+		pair<int, int> ca = maxind[i], cb = maxind[i + (1 << j)];
+		if (cb.first > ca.first)
+		{
+			ca.second = ca.first;
+			ca.first = cb.first;
+		}
+ 
+		else if (cb.first > ca.second) if (cb.first < ca.first) ca.second = cb.first;
+		if (cb.second > ca.second) if (cb.second < ca.first) ca.second = cb.second;
+		maxind[i] = ca;
+	}
+ 
+	int ans = 0;
+	for (int i = 0; i < n - 2; i++)
+	{
+		int curr = 0;
+		for (int j = bits - 1; j > -1; j--) if (~a[i] & (1 << j)) if (maxind[curr | (1 << j)].second > i)
+			curr |= (1 << j);
+		ans = max(ans, curr + a[i]);
+	}
+ 
+	cout << ans;
+}
