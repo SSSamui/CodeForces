@@ -1,0 +1,51 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+ 
+const ll MOD = 1e9 + 7;
+const int sz = 1 << 21;
+const int bits = 21;
+ 
+ll pw(ll b, ll e)
+{
+	if (e == 0) return 1;
+	if (e % 2 == 1) return (pw(b, e - 1) * b) % MOD;
+	ll ans = pw(b, e / 2);
+	return (ans * ans) % MOD;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n;
+	cin >> n;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+ 
+	ll ans = 0;
+	vector<vector<int>> count(sz, vector<int>(bits, 0));
+	for (int i = 0; i < n; i++) count[a[i]][0]++;
+	for (int i = sz - 1; i > -1; i--)
+	{
+		bool ebits = true;
+		for (int j = 0; j < bits; j++) if (i & (1 << j))
+		{
+			ebits = !ebits;
+			for (int k = 0; k <= j; k++) count[i - (1 << j)][j] += count[i][k];
+		}
+ 
+		int fcount = 0;
+		for (int j = 0; j < bits; j++) fcount += count[i][j];
+		ll cadd = pw(2, fcount);
+ 
+		if (ebits) ans = (ans + cadd) % MOD;
+		else ans = (ans - cadd + MOD) % MOD;
+	}
+ 
+	cout << ans;
+}
