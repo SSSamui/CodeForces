@@ -1,0 +1,25 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+const int sz = 1 << 22;
+const int bits = 22;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int n;
+	cin >> n;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+ 
+	vector<int> dp(sz, -1);
+	for (int i = 0; i < n; i++) dp[a[i]] = a[i];
+	for (int i = 0; i < sz; i++) for (int j = 0; j < bits; j++) if (~i & (1 << j)) if (dp[i] > -1)
+		dp[i + (1 << j)] = dp[i];
+	for (int i = 0; i < n; i++) cout << dp[sz - 1 - a[i]] << ' ';
+}
