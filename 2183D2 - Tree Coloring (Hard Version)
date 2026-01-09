@@ -1,0 +1,155 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <set>
+#include <algorithm>
+using namespace std;
+ 
+class tree
+{
+private:
+	int n;
+	vector<vector<int>> edges, depsort;
+	vector<int> sttchd, endchd, next, dep, sz, par, resind;
+	set<pair<pair<int, int>, int>> heads;
+ 
+public:
+	tree(int N)
+	{
+		n = N;
+		edges = vector<vector<int>>(n + 1, vector<int>(0)), depsort = vector<vector<int>>(n + 1, vector<int>(0));
+		sttchd = vector<int>(n + 1, 0), endchd = vector<int>(n + 1, 0), next = vector<int>(n + 1, 0);
+		sz = vector<int>(n + 1, 0), par = vector<int>(n + 1, 0), resind = vector<int>(n + 1, 0);
+		dep = vector<int>(n + 1, 0);
+	}
+ 
+	void join(int a, int b)
+	{
+		edges[a].push_back(b), edges[b].push_back(a);
+	}
+ 
+	void dfs(int node = 1, int p = 0)
+	{
+		sttchd[node] = depsort[dep[node] + 1].size(), sz[node] = edges[node].size();
+		resind[node] = depsort[dep[node]].size();
+		depsort[dep[node]].push_back(node);
+ 
+		for (int nxt : edges[node]) if (nxt != p)
+		{
+			dep[nxt] = dep[node] + 1, par[nxt] = node;
+			dfs(nxt, node);
+		}
+ 
+		endchd[node] = depsort[dep[node] + 1].size();
+	}
+ 
+	void processd(int depth)
+	{
+		set<pair<pair<int, int>, int>> tprc;
+		for (int i = 0; i < depsort[depth].size(); i++)
+			tprc.insert({ {edges[depsort[depth][i]].size(), i}, depsort[depth][i] });
+ 
+		while (!tprc.empty())
+		{
+			auto it = tprc.end();
+			it--;
+			pair<pair<int, int>, int> chk = *it;
+			tprc.erase(it);
+ 
+			int ind = chk.first.second, node = chk.second;
+			heads.insert({ {depth, ind}, node });
+ 
+			auto it1 = heads.end();
+			it1--;
+			if ((*it1).first.first > depth)
+			{
+				if ((*it1).first.first > depth + 1)
+				{
+					next[node] = (*it1).second;
+					heads.erase(it1);
+				}
+ 
+				else if ((*it1).first.second >= endchd[node])
+				{
+					next[node] = (*it1).second;
+					heads.erase(it1);
+ 
+					pair<pair<int, int>, int> spc = { {sz[par[next[node]]], resind[par[next[node]]]}, par[next[node]] };
+					auto it2 = tprc.lower_bound(spc);
+					if (it2 != tprc.end()) if (*it2 == spc)
+					{
+						tprc.erase({ {sz[par[next[node]]], resind[par[next[node]]]}, par[next[node]] });
+						sz[par[next[node]]]--;
+						tprc.insert({ {sz[par[next[node]]], resind[par[next[node]]]}, par[next[node]] });
+					}
+				}
+ 
+				else
+				{
+					it1 = heads.lower_bound({ {depth + 1, 0}, 0 });
+					if ((*it1).first.second < sttchd[node])
+					{
+						next[node] = (*it1).second;
+						heads.erase(it1);
+ 
+						pair<pair<int, int>, int> spc = { {sz[par[next[node]]], resind[par[next[node]]]}, par[next[node]] };
+						auto it2 = tprc.lower_bound(spc);
+						if (it2 != tprc.end()) if (*it2 == spc)
+						{
+							tprc.erase({ {sz[par[next[node]]], resind[par[next[node]]]}, par[next[node]] });
+							sz[par[next[node]]]--;
+							tprc.insert({ {sz[par[next[node]]], resind[par[next[node]]]}, par[next[node]] });
+						}
+					}
+				}
+			}
+		}
+	}
+ 
+	void printres()
+	{
+		cout << heads.size() << "\n";
+		vector<bool> vis(n + 1, false);
+		for (int depth = 0; depth <= n; depth++) for (int ind = 0; ind < depsort[depth].size(); ind++)
+			if (!vis[depsort[depth][ind]])
+			{
+				vector<int> nodes(0);
+				int node = depsort[depth][ind];
+				while (node > 0)
+				{
+					nodes.push_back(node), vis[node] = true;
+					node = next[node];
+				}
+ 
+				cout << nodes.size();
+				for (int i = 0; i < nodes.size(); i++) cout << ' ' << nodes[i];
+				cout << "\n";
+			}
+	}
+};
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		tree ctree(n);
+		for (int i = 1; i < n; i++)
+		{
+			int u, v;
+			cin >> u >> v;
+			ctree.join(u, v);
+		}
+ 
+		ctree.dfs();
+		for (int i = n - 1; i > -1; i--) ctree.processd(i);
+		ctree.printres();
+	}
+}
