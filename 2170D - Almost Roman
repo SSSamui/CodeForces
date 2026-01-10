@@ -1,0 +1,75 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, __;
+		cin >> n >> __;
+		string s;
+		cin >> s;
+ 
+		int minans = 0, qmarks = 0, icount = 0, vcount = 0;
+		for (int i = 0; i < n; i++)
+		{
+			if (s[i] == 'X') s[i] = 'V', minans += 10, vcount++;
+			else if (s[i] == 'V') minans += 5, vcount++;
+			else if (s[i] == 'I') minans++, icount++;
+			else qmarks++;
+		}
+ 
+		vector<vector<char>> check1(0);
+		for (int i = 0; i < n; i++)
+		{
+			if ((check1.size() == 0) || ((s[i] == 'I') && !check1.back().empty())) check1.push_back(vector<char>(0));
+			check1.back().push_back(s[i]);
+			if (s[i] == 'V') check1.push_back(vector<char>(0));
+		}
+ 
+		if (check1.back().empty()) check1.pop_back();
+		int ifill = 0, vfill = 0, ivpairs = 0, mxpairs = 0;
+		for (int i = 0; i < check1.size(); i++)
+		{
+			int id = 0;
+			if (check1[i][0] == 'I') id++;
+			if (check1[i].back() == 'V') id += 2;
+ 
+			if (id == 0) mxpairs += check1[i].size() / 2;
+			else if (check1[i].size() > 1)
+			{
+				if (id == 1) ifill++, mxpairs += (check1[i].size() - 2) / 2;
+				else if (id == 2) vfill++, mxpairs += (check1[i].size() - 2) / 2;
+				else ivpairs++, mxpairs += (check1[i].size() - 2) / 2;
+			}
+		}
+ 
+		while (__--)
+		{
+			int X, V, I;
+			cin >> X >> V >> I;
+ 
+			int iuse = min(qmarks, I);
+			int vuse = min(qmarks - iuse, V);
+			int xuse = min(qmarks - iuse - vuse, X);
+ 
+			int ans = minans + iuse + 5 * vuse + 10 * xuse;
+			vuse += xuse;
+ 
+			int cpairs = ivpairs + min(ifill, vuse) + min(vfill, iuse);
+			vuse -= min(ifill, vuse), iuse -= min(vfill, iuse);
+			cpairs += min(mxpairs, min(iuse, vuse));
+			ans -= 2 * cpairs;
+			cout << ans << "\n";
+		}
+	}
+}
