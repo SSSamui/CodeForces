@@ -1,0 +1,63 @@
+#include <iostream>
+#include <cstdio>
+#include <map>
+#include <cmath>
+using namespace std;
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, k;
+		cin >> n >> k;
+ 
+		int cmax = 0;
+		map<int, int> ans;
+		ans[0] = k;
+		for (int i = 31; i > -1; i--)
+		{
+			map<int, int> nans;
+			if (n & (1 << i))
+			{
+				cmax += (1 << i);
+				int totadd = k;
+				if (k % 2 == 0) totadd--;
+				for (auto it : ans)
+				{
+					if (it.second <= totadd) totadd -= it.second, nans[it.first + (1 << i)] += it.second;
+					else
+					{
+						nans[it.first + (1 << i)] += totadd, nans[it.first] += (it.second - totadd);
+						totadd = 0;
+					}
+				}
+			}
+ 
+			else
+			{
+				int totadd = k;
+				if (ans.count(cmax) == 1) totadd -= ans[cmax];
+				if (totadd % 2 == 1) totadd--;
+				for (auto it : ans)
+				{
+					if (it.second <= totadd) totadd -= it.second, nans[it.first + (1 << i)] += it.second;
+					else
+					{
+						nans[it.first + (1 << i)] += totadd, nans[it.first] += (it.second - totadd);
+						totadd = 0;
+					}
+				}
+			}
+ 
+			ans = nans;
+		}
+ 
+		for (auto it : ans) for (int i = 0; i < it.second; i++) cout << it.first << ' ';
+		cout << "\n";
+	}
+}
