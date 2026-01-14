@@ -1,0 +1,42 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+ 
+const int MOD = 998244353;
+ 
+int solve()
+{
+	int n, m;
+	cin >> n >> m;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+ 
+	if (a[0] > 1) return 0;
+	for (int i = 1; i < n; i++) if ((a[i] <= a[i - 1]) && (a[i] > 0)) return 0;
+ 
+	vector<int> last(m + 1, 0), curr(m + 1, 0);
+	last[1] = 1;
+	for (int i = 1; i < n; i++)
+	{
+		for (int d = 1; d * 2 <= m; d++) for (int A = d * 2; A <= m; A += d) curr[A] = (curr[A] + last[A - d]) % MOD;
+		if (a[i] > 0) for (int j = 1; j <= m; j++) if (j != a[i]) curr[j] = 0;
+		last = curr;
+		curr = vector<int>(m + 1, 0);
+	}
+ 
+	int ans = 0;
+	for (int i = 1; i <= m; i++) ans = (ans + last[i]) % MOD;
+	return ans;
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--) cout << solve() << "\n";
+}
