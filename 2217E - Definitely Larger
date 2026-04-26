@@ -1,0 +1,46 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+void solve()
+{
+	int n;
+	cin >> n;
+	vector<int> p(n), d(n);
+	for (int i = 0; i < n; i++) cin >> p[i];
+	for (int i = 0; i < n; i++) cin >> d[i];
+
+	vector<int> c(n, 0);
+	for (int i = 0; i < n; i++) for (int j = i + 1; j < n; j++) if (p[j] > p[i]) c[i]++;
+	
+	vector<int> q(n, 0);
+	for (int i = 1; i <= n; i++)
+	{
+		int ind = -1;
+		for (int j = n - 1; j > -1; j--) if (d[j] == c[j]) if (q[j] == 0) ind = j;
+		if (ind == -1)
+		{
+			cout << "-1\n";
+			return;
+		}
+
+		q[ind] = i;
+		for (int j = 0; j < ind; j++) if (p[ind] > p[j]) c[j]--;
+	}
+
+	cout << q[0];
+	for (int i = 1; i < n; i++) cout << ' ' << q[i];
+	cout << "\n";
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--) solve();
+}
