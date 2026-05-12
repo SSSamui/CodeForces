@@ -1,0 +1,76 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+
+struct a
+{
+	a()
+	{
+		int n;
+		ll s;
+		cin >> n >> s;
+		s--;
+		vector<bool> cont(n + 1, false);
+		for (int i = 2; i <= n; i++) if (s & (1ll << (i - 2))) cont[i] = true;
+		for (int i = 2; i <= n; i++)
+		{
+			int a, b;
+			cin >> a >> b;
+			if (a > b) swap(a, b);
+			if (cont[a] ^ cont[b]) swap(a, b);
+			cout << a << ' ' << b << "\n";
+		}
+	}
+};
+
+struct b
+{
+	int n;
+	vector<vector<pair<int, bool>>> adj;
+	ll s;
+
+	b()
+	{
+		cin >> n;
+		s = 0;
+		adj = vector<vector<pair<int, bool>>>(n + 1, vector<pair<int, bool>>(0));
+		for (int i = 1; i < n; i++)
+		{
+			int a, b;
+			cin >> a >> b;
+			adj[a].push_back({ b, (a > b) }), adj[b].push_back({ a, (a > b) });
+		}
+	}
+
+	void dfs(int node = 1, int p = 0)
+	{
+		bool num = false;
+		if (node > 1) if (s & (1ll << (node - 2))) num = true;
+		for (pair<int, bool> next : adj[node]) if (next.first != p)
+		{
+			bool inc = num ^ next.second;
+			if (inc) s ^= (1ll << (next.first - 2));
+			dfs(next.first, node);
+		}
+	}
+};
+
+int main()
+{
+	int _, q;
+	cin >> _ >> q;
+	while (_--)
+	{
+		if (q == 1) a u = a();
+		else
+		{
+			b u = b();
+			u.dfs();
+			cout << u.s + 1 << "\n";
+		}
+	}
+}
