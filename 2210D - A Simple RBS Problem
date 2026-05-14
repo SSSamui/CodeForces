@@ -1,0 +1,59 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <stack>
+using namespace std;
+ 
+bool solve()
+{
+	int n;
+	cin >> n;
+	string a, b;
+	cin >> a >> b;
+ 
+	vector<int> corra(n, 0), corrb(n, 0);
+	stack<int> astack, bstack;
+	for (int i = 0; i < n; i++)
+	{
+		if (a[i] == '(') astack.push(i);
+		else
+		{
+			corra[astack.top()] = i;
+			astack.pop();
+		}
+ 
+		if (b[i] == '(') bstack.push(i);
+		else
+		{
+			corrb[bstack.top()] = i;
+			bstack.pop();
+		}
+	}
+ 
+	int leafa = 0, leafb = 0, inda = -1, indb = -1;
+	for (int i = n - 1; i >= 0; i--)
+	{
+		if (corra[i] == i + 1) leafa++;
+		if (corra[i] > 0) if (corra[i] != n - 1 - i) inda = i;
+		if (corrb[i] == i + 1) leafb++;
+		if (corrb[i] > 0) if (corrb[i] != n - 1 - i) indb = i;
+	}
+ 
+	return ((leafa == leafb) && (inda == indb));
+}
+ 
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+ 
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		if (solve()) cout << "YES\n";
+		else cout << "NO\n";
+	}
+}
