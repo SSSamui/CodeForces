@@ -1,0 +1,49 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+using ll = long long;
+
+const ll MOD = 676767677;
+
+ll solve()
+{
+	int n, m;
+	cin >> n >> m;
+	vector<int> b(n);
+	for (int i = 0; i < n; i++) cin >> b[i];
+
+	vector<vector<int>> invb(m, vector<int>(0));
+	for (int i = 0; i < n; i++) invb[b[i]].push_back(i);
+
+	ll ans = 1;
+	int tmult = invb[0].size();
+	for (int i = 1; i < m; i++)
+	{
+		for (int ind : invb[i])
+		{
+			int adj = m;
+			if (ind > 0) adj = b[ind - 1];
+			if (ind < n - 1) adj = min(adj, b[ind + 1]);
+
+			if (adj >= i) return 0;
+			if (adj < i - 1) ans = (ans * invb[i - 1].size()) % MOD;
+			else ans = (ans * tmult) % MOD;
+		}
+
+		tmult += invb[i].size();
+	}
+
+	return ans;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--) cout << solve() << "\n";
+}
