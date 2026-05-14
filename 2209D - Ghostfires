@@ -1,0 +1,112 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+void solve()
+{
+	int r, g, b;
+	cin >> r >> g >> b;
+
+	if (r + g <= b)
+	{
+		while (g--) b--, cout << "BG";
+		while (r--) b--, cout << "BR";
+		if (b > 0) cout << "B";
+		cout << "\n";
+		return;
+	}
+
+	if (g + b <= r)
+	{
+		while (b--) r--, cout << "RB";
+		while (g--) r--, cout << "RG";
+		if (r > 0) cout << "R";
+		cout << "\n";
+		return;
+	}
+
+	if (b + r <= g)
+	{
+		while (r--) g--, cout << "GR";
+		while (b--) g--, cout << "GB";
+		if (g > 0) cout << "G";
+		cout << "\n";
+		return;
+	}
+
+	string tadd = "\n";
+	int sum = r + g + b;
+	if (sum % 2 == 1)
+	{
+		if (b > 0) b--, tadd = "B\n";
+		else if (g > 0) g--, tadd = "G\n";
+		else r--, tadd = "R\n";
+	}
+
+	sum /= 2;
+	int rg = sum - b, gb = sum - r, br = sum - g;
+	if (tadd == "R\n")
+	{
+		if (br > 0)
+		{
+			while (gb--) cout << "GB";
+			while (br--) cout << "RB";
+			while (rg--) cout << "RG";
+		}
+
+		else
+		{
+			while (gb--) cout << "BG";
+			while (rg--) cout << "RG";
+		}
+		
+		cout << "R\n";
+		return;
+	}
+
+	if (tadd == "G\n")
+	{
+		if (rg > 0)
+		{
+			while (br--) cout << "BR";
+			while (rg--) cout << "GR";
+			while (gb--) cout << "GB";
+		}
+
+		else
+		{
+			while (br--) cout << "RB";
+			while (gb--) cout << "GB";
+		}
+		
+		cout << "G\n";
+		return;
+	}
+
+	if (gb > 0)
+	{
+		while (rg--) cout << "RG";
+		while (gb--) cout << "BG";
+		while (br--) cout << "BR";
+	}
+
+	else
+	{
+		while (rg--) cout << "GR";
+		while (br--) cout << "BR";
+	}
+	
+	cout << tadd;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--) solve();
+}
