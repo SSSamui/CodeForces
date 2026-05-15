@@ -1,0 +1,88 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+struct dfs
+{
+	vector<int> p;
+
+	dfs(int n)
+	{
+		p = vector<int>(n);
+		for (int i = 0; i < n; i++) p[i] = i;
+	}
+
+	int root(int node)
+	{
+		if (p[node] == node) return node;
+		p[node] = root(p[node]);
+		return p[node];
+	}
+
+	bool join(int a, int b)
+	{
+		a = root(a), b = root(b);
+		if (a == b) return false;
+		p[b] = a;
+		return true;
+	}
+};
+
+bool solve()
+{
+	int n;
+	cin >> n;
+	vector<vector<bool>> reach(n + 1, vector<bool>(n + 1, false));
+	vector<pair<int, int>> countnext(0);
+	for (int i = 1; i <= n; i++)
+	{
+		string s;
+		cin >> s;
+		int count = 0;
+		for (int j = 0; j < n; j++) if (s[j] == '1') reach[i][j + 1] = true, count++;
+		countnext.push_back({ count, i });
+	}
+
+	sort(countnext.begin(), countnext.end());
+	vector<pair<int, int>> adj(0);
+	vector<vector<bool>> newreach(n, vector<bool>(n, false));
+	dfs cdfs(n);
+	for (int i = 0; i < n; i++) for (int j = 0; j < n; j++)
+		newreach[i][j] = reach[countnext[i].second][countnext[j].second];
+
+	vector<vector<bool>> curr(n, vector<bool>(n, false));
+	for (int i = 0; i < n; i++)
+	{
+		if (!newreach[i][i]) return false;
+		for (int j = i + 1; j < n; j++) if (newreach[i][j]) return false;
+		for (int j = i - 1; j >= 0; j--)
+		{
+			if (!newreach[i][j] && curr[i][j]) return false;
+			if (newreach[i][j] && !curr[i][j])
+			{
+				if (!cdfs.join(i, j)) return false;
+				adj.push_back({ countnext[i].second, countnext[j].second });
+				for (int k = 0; k <= j; k++) if (newreach[j][k]) curr[i][k] = true;
+			}
+		}
+	}
+
+	if (adj.size() < n - 1) return false;
+	cout << "YES\n";
+	for (int i = 0; i < n - 1; i++) cout << adj[i].first << ' ' << adj[i].second << "\n";
+	return true;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--) if (!solve()) cout << "NO\n";
+}
