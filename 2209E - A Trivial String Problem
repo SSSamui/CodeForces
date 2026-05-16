@@ -1,0 +1,64 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+using ll = long long;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n, __;
+		cin >> n >> __;
+		string s;
+		cin >> s;
+		while (__--)
+		{
+			int l, r;
+			cin >> l >> r;
+			string t = s.substr(l - 1, r - l + 1);
+
+			vector<int> len(r - l + 1, 0);
+			for (int i = 1; i <= r - l; i++)
+			{
+				bool cont = true;
+				len[i] = len[i - 1] + 1;
+				while (cont)
+				{
+					int orglen = len[i] - 1;
+					if (t[i] == t[orglen]) cont = false;
+					else if (orglen == 0) len[i] = 0, cont = false;
+					else len[i] = len[orglen - 1] + 1;
+				}
+			}
+
+			vector<int> smalllen(r - l + 1, 1);
+			for (int i = 1; i <= r - l; i++)
+			{
+				if (len[i] == 0) smalllen[i] = i + 1;
+				else smalllen[i] = smalllen[len[i] - 1];
+			}
+
+			vector<int> ans(r - l + 1, 1);
+			ll fans = 1;
+			for (int i = 1; i <= r - l; i++)
+			{
+				if (smalllen[i] == i + 1) fans++;
+				else
+				{
+					ans[i] = 1 + ans[i - smalllen[i]];
+					fans += ans[i];
+				}
+			}
+
+			cout << fans << "\n";
+		}
+	}
+}
