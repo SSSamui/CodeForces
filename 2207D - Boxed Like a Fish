@@ -1,0 +1,66 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+struct tree
+{
+	int n, k, v;
+	vector<vector<int>> adj;
+	vector<int> dp;
+
+	tree()
+	{
+		cin >> n >> k >> v;
+		adj = vector<vector<int>>(n + 1, vector<int>(0));
+		dp = vector<int>(n + 1, k + 2);
+		for (int i = 1; i < n; i++)
+		{
+			int a, b;
+			cin >> a >> b;
+			adj[a].push_back(b), adj[b].push_back(a);
+		}
+	}
+
+	void dfs(int node, int p = 0)
+	{
+		if (adj[node].size() == 1)
+		{
+			dp[node] = 0;
+			return;
+		}
+
+		int small = k + 2, small2 = k + 2;
+		for (int nxt : adj[node]) if (nxt != p)
+		{
+			dfs(nxt, node);
+			if (dp[nxt] < small)
+			{
+				small2 = small;
+				small = dp[nxt];
+			}
+
+			else if (dp[nxt] < small2) small2 = dp[nxt];
+		}
+
+		dp[node] = 1 + small;
+		if (small + small2 + 2 <= k + 1) dp[node] = 0;
+	}
+};
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		tree ctree = tree();
+		ctree.dfs(ctree.v);
+		if (ctree.dp[ctree.v] == 0) cout << "YES\n";
+		else cout << "NO\n";
+	}
+}
