@@ -1,0 +1,73 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+bool solve()
+{
+	int n;
+	cin >> n;
+	vector<int> a(n + 1);
+	a[0] = n;
+	for (int i = 1; i <= n; i++) cin >> a[i];
+
+	vector<int> next(n + 1, -1), last(n + 1, -1);
+	next[0] = 0, last[0] = 0;
+	int ind = 0, cind = 1;
+	vector<int> b(n + 1, -1);
+	b[0] = n;
+	while (ind < n)
+	{
+		ind++;
+		if (a[ind] < n - ind) return false;
+		if (a[ind] > a[ind - 1]) return false;
+		if (a[ind] == a[ind - 1]) next[ind] = ind, last[ind] = ind;
+		else if (a[ind] == a[ind - 1] - 1)
+		{
+			last[ind] = last[ind - 1], next[last[ind - 1]]++;
+			if (b[last[ind]] >= 0) b[ind] = b[ind - 1], cind++;
+		}
+
+		else
+		{
+			last[ind] = last[ind - 1], next[last[ind - 1]]++;
+			for (int tins = a[ind - 1] - 1; tins > a[ind]; tins--)
+			{
+				int endpoint = next[cind];
+				while (cind <= endpoint)
+				{
+					b[cind] = tins;
+					cind++;
+				}
+			}
+		}
+	}
+
+	int num = a[n];
+	while (cind <= n)
+	{
+		num--;
+		int endpoint = next[cind];
+		while (cind <= endpoint)
+		{
+			b[cind] = num;
+			cind++;
+		}
+	}
+
+	cout << "YES\n";
+	for (int i = 1; i <= n; i++) cout << b[i] << ' ';
+	cout << "\n";
+	return true;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--) if (!solve()) cout << "NO\n";
+}
