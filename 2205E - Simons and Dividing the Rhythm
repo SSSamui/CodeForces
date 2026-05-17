@@ -1,0 +1,42 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+const int MOD = 998244353;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		vector<int> a(n);
+		for (int i = 0; i < n; i++) cin >> a[i];
+
+		vector<vector<int>> len(n, vector<int>(n, 0));
+		for (int i = 0; i < n - 1; i++) for (int j = i + 1; j < n; j++)
+		{
+			bool cont = true;
+			len[i][j] = len[i][j - 1] + 1;
+			while (cont)
+			{
+				int orglen = len[i][j] - 1;
+				if (a[i + orglen] == a[j]) cont = false;
+				else if (orglen == 0) len[i][j] = 0, cont = false;
+				else len[i][j] = len[i][i + orglen - 1] + 1;
+			}
+		}
+
+		vector<int> dp(n + 1, 0);
+		dp[0] = 1;
+		for (int i = 0; i < n; i++) for (int j = 0; j <= i; j++) if (len[j][i] == 0) dp[i + 1] = (dp[i + 1] + dp[j]) % MOD;
+		cout << dp[n] << "\n";
+	}
+}
