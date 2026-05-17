@@ -1,0 +1,87 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+#include <string>
+using namespace std;
+
+const int MXD = 9e5 + 1;
+const int D = 10;
+
+int incs[MXD][D] = { 0 }, sums[MXD] = { 0 }, sumd[MXD] = { 0 };
+map<int, vector<int>> inv;
+
+void start()
+{
+	for (int i = 1; i < D; i++) incs[i][i]++, sums[i] = 2 * i, inv[2 * i].push_back(i);
+	for (int i = D; i < MXD; i++)
+	{
+		int csum = 0;
+		int num = i;
+		while (num > 0)
+		{
+			incs[i][num % 10]++, csum += num % 10;
+			num /= 10;
+		}
+
+		sumd[i] = csum, sums[i] = i + sums[csum];
+		inv[sums[i]].push_back(i);
+		for (int j = 0; j < D; j++) incs[i][j] += incs[csum][j];
+	}
+}
+
+void solve()
+{
+	string s;
+	cin >> s;
+	if (s.length() == 1)
+	{
+		cout << s << "\n";
+		return;
+	}
+
+	int fsumd = 0;
+	int countd[D] = { 0 };
+	for (int i = 0; i < s.length(); i++)
+	{
+		int dig = s[i] - '0';
+		countd[dig]++, fsumd += dig;
+	}
+
+	for (int num : inv[fsumd])
+	{
+		bool canuse = true;
+		for (int i = 0; i < D; i++) if (incs[num][i] > countd[i]) canuse = false;
+		if (canuse)
+		{
+			for (int i = D - 1; i >= 0; i--)
+			{
+				int tuse = countd[i] - incs[num][i];
+				while (tuse--) cout << i;
+			}
+
+			int curr = num;
+			while (curr >= D)
+			{
+				cout << curr;
+				curr = sumd[curr];
+			}
+
+			cout << curr << "\n";
+			return;
+		}
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	start();
+
+	int _;
+	cin >> _;
+	while (_--) solve();
+}
