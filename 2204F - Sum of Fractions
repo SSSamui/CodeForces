@@ -1,0 +1,170 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+
+const ll MOD = 998244353;
+
+struct node
+{
+	int firstnum;
+	int lastnum;
+
+	node(int n)
+	{
+		firstnum = n;
+		lastnum = -1;
+	}
+};
+
+struct segtree
+{
+	int sz;
+	int n;
+	vector<node> tree;
+
+	segtree(int n)
+	{
+		this->n = n;
+		sz = 1;
+		while (sz < n) sz *= 2;
+		sz *= 2;
+		tree = vector<node>(sz, node(n));
+	}
+
+	void pushup(int node)
+	{
+		int lc = 2 * node, rc = 2 * node + 1;
+		if (tree[lc].firstnum < n) tree[node].firstnum = tree[lc].firstnum;
+		else tree[node].firstnum = tree[rc].firstnum;
+		if (tree[rc].lastnum >= 0) tree[node].lastnum = tree[rc].lastnum;
+		else tree[node].lastnum = tree[lc].lastnum;
+	}
+
+	void activate(int node, int l, int r, int tact)
+	{
+		if (l == r)
+		{
+			tree[node].firstnum = l, tree[node].lastnum = l;
+			return;
+		}
+
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		if (tact <= mid) activate(lc, l, mid, tact);
+		else activate(rc, mid + 1, r, tact);
+		pushup(node);
+	}
+
+	int findmin(int node, int l, int r, int a, int b)
+	{
+		if ((r < a) || (l > b)) return n;
+		if ((a <= l) && (r <= b)) return tree[node].firstnum;
+		if (tree[node].lastnum < a) return n;
+		if (tree[node].firstnum > b) return n;
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		int num = findmin(lc, l, mid, a, b);
+		if (num == n) return findmin(rc, mid + 1, r, a, b);
+		return num;
+	}
+
+	int findmax(int node, int l, int r, int a, int b)
+	{
+		if ((r < a) || (l > b)) return -1;
+		if ((a <= l) && (r <= b)) return tree[node].lastnum;
+		if (tree[node].lastnum < a) return -1;
+		if (tree[node].firstnum > b) return -1;
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		int num = findmax(rc, mid + 1, r, a, b);
+		if (num == -1) return findmax(lc, l, mid, a, b);
+		return num;
+	}
+};
+
+ll pw(ll b, ll e = MOD - 2)
+{
+	if (e == 0) return 1;
+	if (e % 2 == 1) return (pw(b, e - 1) * b) % MOD;
+	ll ans = pw(b, e / 2);
+	return (ans * ans) % MOD;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n, _;
+	cin >> n >> _;
+	vector<ll> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+	
+	ll currk = 0, currsum = 0;
+	unordered_map<ll, ll> invs;
+	for (int i = 0; i < n; i++) invs[a[i]] = pw(a[i]);
+	for (int i = 0; i < n; i++)
+	{
+		ll tadd = invs[a[i]] * (i + 1);
+		tadd %= MOD;
+		tadd = (tadd * (n - i)) % MOD;
+		currsum = (currsum + tadd) % MOD;
+	}
+
+	segtree tree(n);
+	map<ll, ll> curradd;
+	vector<pair<ll, int>> inva(0);
+	for (int i = 0; i < n; i++) inva.push_back({ a[i], i });
+	sort(inva.begin(), inva.end());
+	for (int i = 0; i < n; i++)
+	{
+		int indb = inva[i].second;
+		int lind = tree.findmax(1, 0, n - 1, 0, indb - 1), rind = tree.findmin(1, 0, n - 1, indb + 1, n - 1);
+		ll countadd = indb - lind;
+		countadd = (countadd * (rind - indb)) % MOD;
+		curradd[inva[i].first] = (curradd[inva[i].first] + countadd) % MOD;
+		tree.activate(1, 0, n - 1, indb);
+	}
+
+	ll currkadd = 0;
+	for (auto it : curradd) currkadd = (currkadd + invs[it.first] * it.second) % MOD;
+
+	while (_--)
+	{
+		ll k;
+		cin >> k;
+		while (currk < k)
+		{
+			ll nextk = k;
+			if (!curradd.empty())
+			{
+				ll nexta = (*curradd.begin()).first;
+				nextk = min(nextk, nexta - 1);
+			}
+
+			currsum = (currsum + (nextk - currk) * currkadd) % MOD;
+			currk = nextk;
+			if (!curradd.empty())
+			{
+				auto it = *curradd.begin();
+				ll nexta = it.first;
+				if (currk == nexta - 1)
+				{
+					ll counted = it.second;
+					currkadd = (currkadd - invs[nexta] * counted) % MOD;
+					currkadd = (currkadd + MOD) % MOD;
+					currkadd = (currkadd + counted) % MOD;
+					curradd.erase(curradd.begin());
+				}
+			}
+		}
+
+		cout << currsum << "\n";
+	}
+}
