@@ -1,0 +1,233 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <map>
+#include <algorithm>
+using namespace std;
+using ll = long long;
+
+const ll MOD = 998244353;
+
+ll pw(ll b, ll e = MOD - 2)
+{
+	if (e == 0) return 1;
+	if (e % 2 == 1) return (pw(b, e - 1) * b) % MOD;
+	ll ans = pw(b, e / 2);
+	return (ans * ans) % MOD;
+}
+
+struct node
+{
+	int lnode, rnode;
+	int countleft, countright;
+	ll sumleft, sumright;
+	bool act;
+
+	node(int n = 0)
+	{
+		lnode = -1;
+		rnode = n;
+		countleft = 0;
+		countright = 0;
+		sumleft = 0;
+		sumright = 0;
+		act = false;
+	}
+};
+
+struct tree
+{
+	vector<node> segtree;
+	vector<ll> nums;
+	int sz;
+	int n;
+
+	tree(int cn)
+	{
+		sz = 1;
+		n = cn;
+		while (sz < n) sz *= 2;
+		sz *= 2;
+
+		segtree = vector<node>(sz, node(n));
+	}
+
+	void pushdown(int node)
+	{
+		int lc = 2 * node, rc = 2 * node + 1;
+		segtree[lc].countleft += segtree[node].countleft, segtree[rc].countleft += segtree[node].countleft;
+		segtree[node].countleft = 0;
+		segtree[lc].countright += segtree[node].countright, segtree[rc].countright += segtree[node].countright;
+		segtree[node].countright = 0;
+		segtree[lc].sumleft += segtree[node].sumleft, segtree[rc].sumleft += segtree[node].sumleft;
+		segtree[node].sumleft = 0;
+		segtree[lc].sumright += segtree[node].sumright, segtree[rc].sumright += segtree[node].sumright;
+		segtree[node].sumright = 0;
+		if (segtree[node].lnode >= 0)
+		{
+			segtree[lc].lnode = segtree[node].lnode, segtree[rc].lnode = segtree[node].lnode;
+			segtree[node].lnode = -1;
+		}
+
+		if (segtree[node].rnode < n)
+		{
+			segtree[lc].rnode = segtree[node].rnode, segtree[rc].rnode = segtree[node].rnode;
+			segtree[node].rnode = n;
+		}
+	}
+
+	void addlnode(int node, int l, int r, int a, int b, int addnode)
+	{
+		if ((r < a) || (b < l)) return;
+		if ((a <= l) && (r <= b))
+		{
+			segtree[node].lnode = addnode;
+			return;
+		}
+
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		pushdown(node);
+		addlnode(lc, l, mid, a, b, addnode), addlnode(rc, mid + 1, r, a, b, addnode);
+	}
+
+	void addrnode(int node, int l, int r, int a, int b, int addnode)
+	{
+		if ((r < a) || (b < l)) return;
+		if ((a <= l) && (r <= b))
+		{
+			segtree[node].rnode = addnode;
+			return;
+		}
+
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		pushdown(node);
+		addrnode(lc, l, mid, a, b, addnode), addrnode(rc, mid + 1, r, a, b, addnode);
+	}
+
+	void toleft(int node, int l, int r, int a, int b, ll addsum)
+	{
+		if ((r < a) || (b < l)) return;
+		if ((a <= l) && (r <= b))
+		{
+			segtree[node].countleft++, segtree[node].sumleft += addsum;
+			return;
+		}
+
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		pushdown(node);
+		toleft(lc, l, mid, a, b, addsum), toleft(rc, mid + 1, r, a, b, addsum);
+	}
+
+	void toright(int node, int l, int r, int a, int b, ll addsum)
+	{
+		if ((r < a) || (b < l)) return;
+		if ((a <= l) && (r <= b))
+		{
+			segtree[node].countright++, segtree[node].sumright += addsum;
+			return;
+		}
+
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		pushdown(node);
+		toright(lc, l, mid, a, b, addsum), toright(rc, mid + 1, r, a, b, addsum);
+	}
+
+	void activate(int node, int l, int r, int tact)
+	{
+		if (l == r)
+		{
+			segtree[node].act = true;
+			addlnode(1, 0, n - 1, tact + 1, segtree[node].rnode, tact);
+			addrnode(1, 0, n - 1, segtree[node].lnode, tact - 1, tact);
+			toleft(1, 0, n - 1, tact + 1, n - 1, nums[tact]);
+			toright(1, 0, n - 1, 0, tact - 1, nums[tact]);
+			return;
+		}
+
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		if (tact <= mid) activate(lc, l, mid, tact);
+		else activate(rc, mid + 1, r, tact);
+	}
+
+	pair<pair<ll, ll>, int> query(int node, int l, int r, int tqry)
+	{
+		if (l == r)
+		{
+			if (!segtree[node].act)
+			{
+				if (segtree[node].rnode == n) return { {1, 0}, n };
+				return query(1, 0, n - 1, segtree[node].rnode);
+			}
+
+			ll leftsum = 0, rightsum = 0;
+			if (segtree[node].lnode >= 0) leftsum =
+				segtree[node].countleft * nums[segtree[node].lnode] - segtree[node].sumleft;
+			if (segtree[node].rnode < n) rightsum =
+				segtree[node].sumright - segtree[node].countright * nums[segtree[node].rnode];
+			return { {leftsum, rightsum}, tqry };
+		}
+
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		if (tqry <= mid) return query(lc, l, mid, tqry);
+		return query(rc, mid + 1, r, tqry);
+	}
+
+	int findnext(int node, int l, int r, int tqry)
+	{
+		if (l == r) return segtree[node].rnode;
+		pushdown(node);
+		int mid = l + (r - l) / 2;
+		int lc = 2 * node, rc = 2 * node + 1;
+		if (tqry <= mid) return findnext(lc, l, mid, tqry);
+		return findnext(rc, mid + 1, r, tqry);
+	}
+};
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n;
+	cin >> n;
+	vector<ll> a(n);
+	for (int i = 0; i < n; i++) cin >> a[i];
+
+	tree tree(n);
+	tree.nums = a;
+	sort(tree.nums.begin(), tree.nums.end());
+	map<ll, int> inv;
+	for (int i = 0; i < n; i++) inv[tree.nums[i]] = i;
+
+	tree.activate(1, 0, n - 1, inv[a[0]]);
+	tree.activate(1, 0, n - 1, inv[a[1]]);
+
+	for (int i = 2; i < n; i++)
+	{
+		tree.activate(1, 0, n - 1, inv[a[i]]);
+		int l = 0, r = n - 1;
+		while (l < r)
+		{
+			int mid = l + (r - l + 1) / 2;
+			pair<pair<ll, ll>, int> qry = tree.query(1, 0, n - 1, mid);
+			if (qry.first.first <= qry.first.second) l = qry.second;
+			else r = mid - 1;
+		}
+
+		ll ans = tree.query(1, 0, n - 1, l).first.second;
+		l = tree.findnext(1, 0, n - 1, l);
+		ans = min(ans, tree.query(1, 0, n - 1, l).first.first);
+		ans %= MOD;
+		ans = (ans * pw(i - 1)) % MOD;
+		cout << ans << "\n";
+	}
+}
