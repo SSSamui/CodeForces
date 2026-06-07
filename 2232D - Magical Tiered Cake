@@ -1,0 +1,66 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+vector<int> num(0);
+vector<pair<int, pair<int, int>>> moves(0);
+
+void solve(int n, int a = 1, int b = 2, int c = 3)
+{
+	if (num[n - 1] == n - 1)
+	{
+		moves.push_back({ n, {a, c} });
+		if (n > 1) solve(n - 1, a, b, c);
+	}
+
+	else if (num[n - 1] == 0)
+	{
+		solve(n - 1, a, c, b);
+		moves.push_back({ n, {a, c} });
+		solve(n - 1, b, a, c);
+	}
+
+	else
+	{
+		solve(n - 1 - num[n - 1], a, c, b);
+		moves.push_back({ n, {a, c} });
+		solve(n - 1 - num[n - 1], b, c, a);
+		if (n > 1) solve(n - 1, a, b, c);
+	}
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		int n;
+		cin >> n;
+		bool poss = true;
+		for (int i = 0; i < n; i++)
+		{
+			int a;
+			cin >> a;
+			num.push_back(a);
+			if (a > i) poss = false;
+		}
+
+		if (!poss) cout << "NO\n";
+		else
+		{
+			cout << "YES\n";
+			solve(n);
+			cout << moves.size() << "\n";
+			for (int i = 0; i < moves.size(); i++) cout << moves[i].first << ' ' << moves[i].second.first << ' ' << moves[i].second.second << "\n";
+			moves.clear();
+		}
+
+		num.clear();
+	}
+}
