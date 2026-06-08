@@ -1,0 +1,142 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int n;
+	cin >> n;
+	vector<pair<int, int>> pc(n);
+	for (int i = 0; i < n; i++) cin >> pc[i].first;
+	for (int i = 0; i < n; i++) cin >> pc[i].second;
+	sort(pc.begin(), pc.end());
+
+	vector<pair<int, int>> cp = pc;
+	for (int i = 0; i < n; i++) swap(cp[i].first, cp[i].second);
+	sort(cp.begin(), cp.end());
+
+	int minsum = pc[0].first + pc[0].second;
+	for (int i = 1; i < n; i++) minsum = min(minsum, pc[i].first + pc[i].second);
+
+	int m;
+	cin >> m;
+	vector<int> tp(m), tc(m), d(m);
+	for (int i = 0; i < m; i++) cin >> tp[i];
+	for (int i = 0; i < m; i++) cin >> tc[i];
+	for (int i = 0; i < m; i++) cin >> d[i];
+
+	vector<int> ans(m, minsum);
+	int minc = pc[0].second;
+	vector<pair<int, int>> tpsort(0);
+	for (int i = 0; i < m; i++) tpsort.push_back({ tp[i], i });
+	sort(tpsort.begin(), tpsort.end());
+	int indtp = 0, indp = 1;
+	while ((indtp < m) && (tpsort[indtp].first <= pc[0].first)) indtp++;
+	while (indtp < m)
+	{
+		while ((indp < n) && (pc[indp].first < tpsort[indtp].first))
+		{
+			minc = min(minc, pc[indp].second);
+			indp++;
+		}
+
+		int cminc = minc;
+		if (minc < tc[tpsort[indtp].second]) cminc = 0;
+		else
+		{
+			int sumtcd = tc[tpsort[indtp].second] + d[tpsort[indtp].second];
+			if (minc > sumtcd) cminc = sumtcd;
+		}
+
+		ans[tpsort[indtp].second] = min(ans[tpsort[indtp].second], cminc);
+		indtp++;
+	}
+
+	minc = pc.back().second;
+	vector<pair<int, int>> tpdsort(0);
+	for (int i = 0; i < m; i++) tpdsort.push_back({ tp[i] + d[i], i });
+	sort(tpdsort.begin(), tpdsort.end());
+	indp = n - 2;
+	int indtpd = m - 1;
+	while ((indtpd >= 0) && (tpdsort[indtpd].first >= pc.back().first)) indtpd--;
+	while (indtpd >= 0)
+	{
+		while ((indp >= 0) && (pc[indp].first > tpdsort[indtpd].first))
+		{
+			minc = min(minc, pc[indp].second);
+			indp--;
+		}
+
+		int cminc = minc;
+		if (minc < tc[tpdsort[indtpd].second]) cminc = 0;
+		else
+		{
+			int sumtcd = tc[tpdsort[indtpd].second] + d[tpdsort[indtpd].second];
+			if (minc > sumtcd) cminc = sumtcd;
+		}
+
+		ans[tpdsort[indtpd].second] = min(ans[tpdsort[indtpd].second], tpdsort[indtpd].first + cminc);
+		indtpd--;
+	}
+
+	int minp = cp[0].second;
+	vector<pair<int, int>> tcsort(0);
+	for (int i = 0; i < m; i++) tcsort.push_back({ tc[i], i });
+	sort(tcsort.begin(), tcsort.end());
+	int indc = 0, indtc = 0;
+	while ((indtc < m) && (tcsort[indtc].first <= cp[0].first)) indtc++;
+	while (indtc < m)
+	{
+		while ((indc < n) && (cp[indc].first < tcsort[indtc].first))
+		{
+			minp = min(minp, cp[indc].second);
+			indc++;
+		}
+
+		int cminp = minp;
+		if (minp < tp[tcsort[indtc].second]) cminp = 0;
+		else
+		{
+			int sumtpd = tp[tcsort[indtc].second] + d[tcsort[indtc].second];
+			if (minp > sumtpd) cminp = sumtpd;
+		}
+
+		ans[tcsort[indtc].second] = min(ans[tcsort[indtc].second], cminp);
+		indtc++;
+	}
+
+	minp = cp.back().second;
+	vector<pair<int, int>> tcdsort(0);
+	for (int i = 0; i < m; i++) tcdsort.push_back({ tc[i] + d[i], i });
+	sort(tcdsort.begin(), tcdsort.end());
+	indc = n - 2;
+	int indtcd = m - 1;
+	while ((indtcd >= 0) && (tcdsort[indtcd].first >= cp.back().first)) indtcd--;
+	while (indtcd >= 0)
+	{
+		while ((indc >= 0) && (cp[indc].first > tcdsort[indtcd].first))
+		{
+			minp = min(minp, cp[indc].second);
+			indc--;
+		}
+
+		int cminp = minp;
+		if (minp < tp[tcdsort[indtcd].second]) cminp = 0;
+		else
+		{
+			int sumtpd = tp[tcdsort[indtcd].second] + d[tcdsort[indtcd].second];
+			if (minp > sumtpd) cminp = sumtpd;
+		}
+
+		ans[tcdsort[indtcd].second] = min(ans[tcdsort[indtcd].second], tcdsort[indtcd].first + cminp);
+		indtcd--;
+	}
+
+	for (int i = 0; i < m; i++) cout << ans[i] << "\n";
+}
