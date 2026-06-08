@@ -1,0 +1,81 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+const int MOD = 998244353;
+
+struct tree
+{
+	int n;
+	vector<vector<int>> adj;
+	vector<int> dp1, dp2;
+
+	tree()
+	{
+		cin >> n;
+		adj = vector<vector<int>>(n + 1, vector<int>(0));
+		dp1 = vector<int>(n + 1, 0), dp2 = vector<int>(n + 1, 0);
+		for (int i = 1; i < n; i++)
+		{
+			int a, b;
+			cin >> a >> b;
+			adj[a].push_back(b), adj[b].push_back(a);
+		}
+	}
+
+	void dfs1(int node, int p = 0)
+	{
+		for (int nxt : adj[node]) if (nxt != p)
+		{
+			dfs1(nxt, node);
+			dp1[node] = max(dp1[node], max(dp1[nxt], nxt));
+		}
+	}
+
+	void dfs2(int minbar, int node, int p)
+	{
+		if (node > minbar) dp2[n] = (dp2[n] + dp2[node]) % MOD;
+		for (int nxt : adj[node]) if (nxt != p) dfs2(minbar, nxt, node);
+	}
+
+	int solve()
+	{
+		if (adj[n].size() == 1) return 1;
+		dfs1(n);
+		int maxleaf = 0;
+		for (int i = 1; i < n; i++) if (adj[i].size() == 1) maxleaf = i;
+		vector<int> psums(n, 0);
+		dp2[maxleaf] = 1, psums[maxleaf] = 1;
+		for (int i = maxleaf + 1; i < n; i++)
+		{
+			if (i - dp1[i] > 1) dp2[i] = (psums[i - 1] - psums[dp1[i]] + MOD) % MOD;
+			psums[i] = (psums[i - 1] + dp2[i]) % MOD;
+		}
+
+		int nodemax = 0, othermax = 0;
+		for (int nxt : adj[n])
+		{
+			if ((nxt == n - 1) || (dp1[nxt] == n - 1)) nodemax = nxt;
+			else othermax = max(othermax, max(nxt, dp1[nxt]));
+		}
+
+		dfs2(othermax, nodemax, n);
+		return dp2[n];
+	}
+};
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	int _;
+	cin >> _;
+	while (_--)
+	{
+		tree ctree = tree();
+		cout << ctree.solve() << "\n";
+	}
+}
